@@ -9,17 +9,27 @@ public class DE2 {
 	public DE2(){
 		
 	}
+
+	public ArrayList <String> navigateEverywhere(Point start, ArrayList<Point> points){
+		ArrayList <String> directions = new ArrayList <String> ();
+		for (Point point : points){
+			directions.addAll( navigate(start,point) );
+			start = point;
+		}
+		return directions;
+	}
 	
-	public ArrayList <String> navigate(int startX, int startY, int finX, int finY){
+	
+	public ArrayList <String> navigate(Point start, Point finish){
 		
 		//setup
 		ArrayList <String> directions = new ArrayList <String> ();
-		x1 = startX;
-		y1 = startY;
+		x1 = start.x;
+		y1 = start.y;
 		x = x1;
 		y = y1;
-		x2 = finX;
-		y2 = finY;
+		x2 = finish.x;
+		y2 = finish.y;
 
 		deltaY = y2 - y;
 		//navigate vertically
@@ -146,9 +156,26 @@ public class DE2 {
 		dir = bot.goSouth(-1);
 		
 		//testing main function
-		dir = bot.navigate(4, 2, 6, 4);
+		Point start = new Point(4,2);
+		Point finish = new Point(6,4);
+		dir = bot.navigate(start,finish);
+		
+		
+		ArrayList<Point> points = new ArrayList<Point>();
+		points.add(new Point(1,1));
+		points.add(finish);
+		points.add(start);
+		dir = bot.navigateEverywhere(start,points);
 		
 		bot.printDirections(dir);
 	}
 
+	public static class Point{
+		int x, y;
+		public Point(int x, int y){
+			this.x = x;
+			this.y = y;
+		}
+		
+	}
 }
