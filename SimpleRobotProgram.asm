@@ -122,7 +122,7 @@ TOPAREA:
     LOADI   12
     SUB     X2
     SUB     One         ; 12ft - right sensor - offset of de2 size
-    SHIFT   -2
+    SHIFT   -1
     STORE   X7          ; store the true x coordinate
     
     LOAD    Y1
@@ -142,7 +142,7 @@ BOTTOMAREA:
     ADDI    8
     SUB     X2
     SUB     One         ; 8ft - right sensor - offset of de2 size
-    SHIFT   -2
+    SHIFT   -1
     STORE   X7          ; store the result in the x
     
     LOAD    Y2
