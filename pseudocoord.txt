@@ -1,0 +1,53 @@
+/**
+* Given the 90 degree oritentating program
+* This program should get you to one of 8 possible blocks along with its facing
+*
+* PseudoCode for finding a coordinate and a direction from an 90 degree oriented bot.
+*/
+
+readForwardSensor();
+runForwardTilwall();
+readForwardSensor();
+turnLeft();
+RunForwardTilWall();
+
+if(left + right == 3 blocks) //left half of arena
+		if(right == 0 && sensor6 < 1 block){
+			//assume A assume facing leftward
+		}else if(left == 1 && right == 2){
+			//assume D and facing leftward
+		}else if(left == 0){
+			//assume block F and facing leftward
+		}
+		else if(right == 0 block && sensor6 > 1 block){
+			//assume E facing downward
+		}
+		
+}
+//handle case left of the X
+
+if(left + right == 5 blocks) //top half of arena
+	if(left == 4 && right == 1){
+		//assume B facing upward
+	}else if(left == 5 && right == 0){
+		//assume C facing upward
+	}
+	
+if(left + right == 0 blocks){
+	if(sensor7 > 1 blocks){
+		//assume C facing rightward
+	}
+}
+
+if(left + right == 1){
+	if(left == 0){
+		//assume E facing rightward
+	}
+	if(right == 0 && sensor7 < 1){
+		//assume F facing rightward
+	}else if(right == 0 && sensor6 > 1){
+		//assume H facing rightward
+	}
+}
+
+/*Orientation of which direction it is facing and its block are known at this point.*/
