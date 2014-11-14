@@ -17,7 +17,7 @@ Init:
     
     CALL    SetupI2C    ; Configure the I2C to read the battery voltage
     CALL    BattCheck   ; Get battery voltage (and end if too low).
-    OUT    LCD          ; Display batt voltage on LCD
+    OUT     LCD         ; Display batt voltage on LCD
 
 WaitForSafety:          ; Wait for safety switch to be toggled
     IN      XIO         ; XIO contains SAFETY signal
@@ -49,47 +49,14 @@ WaitForUser:            ; Wait for user to press PB3
 Main:                   ; Program starts here.
     CALL    StopMotors  ; Reset robot
     OUT     RESETPOS
-    LOADI   &B01000000  ; Enable sensor 6
+    LOADI   &B00000001  ; Enable sensor 6
     OUT     SONAREN
-    LOADI   200         ; We're using a cutoff distance of 200
-    STORE   Temp2
-    
-Turn1:                  ; Turn until it finds something close by
-    LOAD    FSlow
-    CALL    TurnMotors
-    IN      Dist6       ; Read sensor 6
-    SUB     Temp2       ; Subtract cutoff
-    JPOS    Turn1       ; Loop until something close
-    CALL    StopMotors  ; Stop
-    
-    OUT     RESETPOS
-    IN      RPOS
-    STORE   Temp        ; Store current encoder value (should be zero, but error?)
-Turn2:                  ; Turn until it stops finding something close by
-    LOAD    FSlow
-    CALL    TurnMotors
-    IN      Dist6       ; Read sensor 6
-    SUB     Temp2       ; Subtract cutoff
-    JNEG    Turn2       ; Loop until something close
-    
-    IN      RPOS        ; Read new value
-    SUB     Temp        ; Subtract old value
-    CALL    AbsoluteVal ; Make sure not negative
-    SHIFT   -1          ; Divide by 2
-    STORE   Temp        ; Store new value to turn back
+    LOAD    OneFootDist     ; We're using a cutoff distance of 3 feet
+    ADD     TwoFeet
+    LOADI   OneFootDist
+    STORE   DistCutoff
 
-    CALL    StopMotors  ; Stop
-    LOAD    Temp
-    OUT     SSEG2       ; Display
-    
-    OUT     RESETPOS
-Turn3:
-    LOADI   RSlow       ; Turn back the other way
-    CALL    MoveMotors
-    IN      RPOS        ; Read current value
-    SUB     Temp
-    JNEG    Turn3       ; Loop until turned back 1/2 way
-    
+    CALL    OrientToWall
     CALL    StopMotors
 STOPHERE:
     IN      DIST6
@@ -177,11 +144,71 @@ DEAD: DW    &HDEAD
 ;* Subroutines
 ;***************************************************************
 
+TurnUntilSomething:
+    LOAD    FSlow
+    CALL    TurnMotors
+    IN      Dist0       ; Read sensor 6
+    SUB     DistCutoff       ; Subtract cutoff
+    JPOS    TurnUntilSomething ; Loop until something close by
+    CALL    StopMotors
+    RETURN
+
+TurnUntilNothing:
+    LOAD    FSlow
+    CALL    TurnMotors
+    IN      Dist0       ; Read sensor 6
+    SUB     DistCutoff       ; Subtract cutoff
+    JNEG    TurnUntilNothing ; Loop until something close by
+    CALL    StopMotors
+    RETURN
+
+OrientToWall:           ; Turn until it finds something close by
+    LOADI   &H0001
+    OUT     LCD
+    CALL    TurnUntilSomething
+    CALL    Wait1
+    OUT     RESETPOS    ; Reset Encoders
+    OUT     SSEG2
+    STORE   Args
+Turn1:
+    LOADI   &H0011
+    OUT     LCD
+    CALL    TurnUntilNothing
+    IN      LPOS
+    OUT     SSEG1
+    SUB     Args
+    STORE   Args2
+    ADDI    -15
+    OUT     LCD
+    JNEG    OrientToWall ; Did it turn enough? Try again
+    
+    LOADI   &H0111
+    OUT     LCD
+    IN      LPOS        ; Read new value
+    SUB     Args2       ; Subtract old value
+    CALL    AbsoluteVal ; Make sure not negative
+    SHIFT   -1          ; Divide by 2
+    STORE   Args2       ; Store new value to turn back
+    CALL    StopMotors  ; Stop
+    CALL    Wait1
+    ;LOAD    Args2
+    ;OUT     SSEG2       ; Display
+    OUT     RESETPOS
+Turn4:
+    LOAD    RSlow       ; Turn back the other way
+    CALL    TurnMotors
+    IN      RPOS        ; Read current value
+    SUB     Args2
+    JNEG    Turn4       ; Loop until turned back 1/2 way
+    CALL    StopMotors
+    JUMP    Forever
+    RETURN
+    
 GetFeet:                ; Converts AC sensor reading to feet
     LOAD    Zero
     STORE   Args2
 FeetLoop:
-    SUB     OneFoot
+    SUB     OneFootDist
     STORE   Args2
     LOAD    Args
     ADDI    1
@@ -205,7 +232,14 @@ TurnMotors:             ; Sets motor velocity to AC (turning)
     SUB     Args
     OUT     RVELCMD
     RETURN
-
+    
+Add360:
+    ADD     DEG360
+Mod360:
+    JNEG    Add360
+    RETURN
+    
+    
 AbsoluteVal:
     JNEG    OppositeSign
     RETURN
@@ -336,7 +370,9 @@ Temp:       DW  0   ; Temporary Variable
 Temp2:      DW  0   ; Temporary Variable 2
 Args:       DW  0   ; "Function" Argument/Variable
 Args2:      DW  0   ; "Function" Argument/Variable 2
+Args3:      DW  0   ; "Function" Argument/Variable 3
 WaitTime:   DW  0   ; Input to Wait
+DistCutoff: DW  0   ; Distance Cutoff
 
 ;OUR VARIABLES
 X1:         DW  0
@@ -349,7 +385,7 @@ X7:         DW  0
 Y7:         DW  0
 
 A:          DW  0
-OneFoot:    DW  290 ; roughly 304.8 mm per ft (but ticks are ~1.05 mm, so about 290.3 ticks)
+OneFootDist:    DW  304 ; roughly 304.8 mm per ft (but ticks are ~1.05 mm, so about 290.3 ticks)
 divsave:    DW  0
 
 B:          DW  0
