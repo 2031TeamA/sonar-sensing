@@ -34,7 +34,7 @@ localize:
 
 	
 forwardTilWall:
-	LOADI 0b00000100
+	LOADI &b00000100
 	OUT SONAREN
 	IN DIST2		;read forward sensor
 	ADDI -200		;we will say once 200mm to wall we need to stop
@@ -62,7 +62,7 @@ retEarly:
 	RETURN
 	
 stopBot:
-	LOADI 0b00000000
+	LOADI &b00000000
 	OUT SONAREN
 	LOADI 0
 	OUT RVELCMD
@@ -70,7 +70,7 @@ stopBot:
 	RETURN
 	
 stopBotGetdistanceA:
-	LOADI 0b00000000
+	LOADI &b00000000
 	OUT SONAREN
 	LOADI 0
 	OUT RVELCMD
@@ -80,7 +80,7 @@ stopBotGetdistanceA:
 	RETURN
 	
 stopBotGetdistanceB:
-	LOADI 0b00000000
+	LOADI &b00000000
 	OUT SONAREN
 	LOADI 0
 	OUT RVELCMD
@@ -88,6 +88,8 @@ stopBotGetdistanceB:
 	IN XPOS
 	STORE distance2
 	RETURN
+
+;;Will input the massive if statements here wednesday
 	
 	
 distance1:		dw 0	;first distance travelled
