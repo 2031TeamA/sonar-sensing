@@ -68,21 +68,15 @@ orient:
 	STORE tempCompare
 	
 	LOAD tempCompare
-	ADDI -3500	;check at 3/4 feet
-	LOADI 1
-	OUT SSEG1
+	ADDI -2200	;check at ~7 feet (Bottom Arena or far left)
 	JNEG stopRotate
 	
 	LOAD tempCompare
-	ADDI -3500	;check at 4/5 feet
-	LOADI 2
-	OUT SSEG1
+	ADDI -2900	;check at ~9 feet (Same row as X block)
 	JNEG stopRotate
 	
 	LOAD tempCompare
-	ADDI -4000	;check at 6 feet
-	LOADI 3
-	OUT SSEG1
+	ADDI -3500	;check at ~11 feet (Top arena with 6 block)
 	JNEG stopRotate
 	
 	LOADI 100
