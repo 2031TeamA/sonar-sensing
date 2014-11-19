@@ -69,15 +69,15 @@ orient:
 	
 	LOAD tempCompare
 	ADDI -2200	;check at ~7 feet (Bottom Arena or far left)
-	JNEG stopRotate
+	JZERO stopRotate
 	
 	LOAD tempCompare
 	ADDI -2900	;check at ~9 feet (Same row as X block)
-	JNEG stopRotate
+	JZERO stopRotate
 	
 	LOAD tempCompare
 	ADDI -3500	;check at ~11 feet (Top arena with 6 block)
-	JNEG stopRotate
+	JZERO stopRotate
 	
 	LOADI 100
 	OUT RVELCMD
