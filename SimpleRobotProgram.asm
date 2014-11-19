@@ -49,88 +49,23 @@ WaitForUser:            ; Wait for user to press PB3
 Main:                   ; Program starts here.
     CALL    StopMotors  ; Reset robot
     OUT     RESETPOS
-    LOADI   &B00000001  ; Enable sensor 6
+    LOADI   &B00100001  ; Enable sensor 6
     OUT     SONAREN
-    LOAD    OneFootDist     ; We're using a cutoff distance of 3 feet
+    LOAD    OneFtDist     ; We're using a cutoff distance of 3 feet
     ADD     TwoFeet
-    LOADI   OneFootDist
+    LOADI   OneFtDist
     STORE   DistCutoff
-
-    CALL    OrientToWall
-    CALL    StopMotors
-STOPHERE:
-    IN      DIST6
-    OUT     LCD
-    Jump    STOPHERE
     
-ReadDirections:         ; Reads the directions and converts it all to feet.
-    IN      DIST2    
-    CALL    GetFeet
-    STORE   X1
-
-    IN      DIST6
-    CALL    GetFeet
-    STORE   X2
-    
-    IN      DIST5
-    CALL    GetFeet
-    STORE   Y1
-    
-    IN      DIST0
-    CALL    GetFeet
-    STORE   Y2
-
-FindMe:                 ; Runs the code to determine whether it is in the top half or bottom half.
-    LOAD    X1
-    ADD     X2
-    SUB     TOP
-    JNEG    BOTTOMAREA  ; If X1 + X2 - 10 is negative then the bot is in the bottom area
-TOPAREA:
-    LOADI   12
-    SUB     X2
-    SUB     One         ; 12ft - right sensor - offset of de2 size
-    SHIFT   -1
-    STORE   X7          ; store the true x coordinate
-    
-    LOAD    Y1
-    SUB     Two         ; Grabs the reading from the top sensor. If it is positive after subtracting 2 feet then its assumed to be in y coord 2
-    JPOS    setY2
-setY1:                  ; If Top sensor - 2 is negative then it must be at the top few locations
-    LOADI   1
-    STORE   Y7
-    JUMP    OutputLocation7Seg
-setY2:
-    LOADI   2
-    STORE   Y7
-    JUMP    OutputLocation7Seg
-    
-BOTTOMAREA:
+    CALL    TryTurning
     LOADI   0
-    ADDI    8
-    SUB     X2
-    SUB     One         ; 8ft - right sensor - offset of de2 size
-    SHIFT   -1
-    STORE   X7          ; store the result in the x
-    
-    LOAD    Y2
-    SUB     Two    
-    JPOS    setY3
-setY4:    
-    LOADI   4
-    STORE   Y7          ; If the bottom sensor - 2 is negative or zero still it is at y=4
-    JUMP    OutputLocation7Seg
-setY3:
-    LOADI   3
-    STORE   Y7          ; If the bottom sensor - 2 is positive then it is at y=3
-OutputLocation7Seg:
-    LOAD    X7          ; Will output X location sseg1 and output y location to sseg2
+    OUT     SONAREN
+DieHard:
+    LOADI   &HFFFF
     OUT     SSEG1
-    LOAD    Y7
+    LOAD    Temp
     OUT     SSEG2
-    IN      TIMER
-    OUT     LCD
-    JUMP    ReadDirections
-
+    JUMP    DieHard
+ 
 Die:                    ; Permadeath (and stops when program is complete)
     CALL    StopMotors
     OUT     SONAREN
@@ -144,109 +79,158 @@ DEAD: DW    &HDEAD
 ;* Subroutines
 ;***************************************************************
 
-TurnUntilSomething:
-    LOAD    FSlow
-    CALL    TurnMotors
+SideArgs:   DW  0
+ReadSides:
     IN      Dist0       ; Read sensor 6
-    SUB     DistCutoff       ; Subtract cutoff
-    JPOS    TurnUntilSomething ; Loop until something close by
-    CALL    StopMotors
+    STORE   SideArgs    ; Subtract cutoff
+    IN      Dist5
+    ADD     SideArgs
+    STORE   SideArgs
     RETURN
 
-TurnUntilNothing:
-    LOAD    FSlow
-    CALL    TurnMotors
-    IN      Dist0       ; Read sensor 6
-    SUB     DistCutoff       ; Subtract cutoff
-    JNEG    TurnUntilNothing ; Loop until something close by
-    CALL    StopMotors
-    RETURN
-
-OrientToWall:           ; Turn until it finds something close by
-    LOADI   &H0001
-    OUT     LCD
-    CALL    TurnUntilSomething
-    CALL    Wait1
-    OUT     RESETPOS    ; Reset Encoders
-    OUT     SSEG2
-    STORE   Args
-Turn1:
-    LOADI   &H0011
-    OUT     LCD
-    CALL    TurnUntilNothing
-    IN      LPOS
+IsValidReading:
+    CALL    GetFeet
+    STORE   Temp
+    ADDI    -8
+    JZERO   Read4
+    ADDI    -2
+    JZERO   Read6
+    ADDI    -2
+    JZERO   Read8
+    LOADI   -1
     OUT     SSEG1
-    SUB     Args
-    STORE   Args2
-    ADDI    -15
-    OUT     LCD
-    JNEG    OrientToWall ; Did it turn enough? Try again
+    RETURN
+Read4:
+    LOADI   4
+    OUT     SSEG1
+    RETURN
+Read6:
+    LOADI   6
+    OUT     SSEG1
+    RETURN
+Read8:
+    LOADI   8
+    OUT     SSEG1
+    RETURN
+
+TurnValue:  DW  4
     
-    LOADI   &H0111
-    OUT     LCD
-    IN      LPOS        ; Read new value
-    SUB     Args2       ; Subtract old value
-    CALL    AbsoluteVal ; Make sure not negative
-    SHIFT   -1          ; Divide by 2
-    STORE   Args2       ; Store new value to turn back
-    CALL    StopMotors  ; Stop
-    CALL    Wait1
-    ;LOAD    Args2
-    ;OUT     SSEG2       ; Display
+TryTurning:
     OUT     RESETPOS
-Turn4:
-    LOAD    RSlow       ; Turn back the other way
-    CALL    TurnMotors
-    IN      RPOS        ; Read current value
-    SUB     Args2
-    JNEG    Turn4       ; Loop until turned back 1/2 way
-    CALL    StopMotors
-    JUMP    Forever
+TurnLoop:
+    CALL    TurnMotorsFSlow
+    CALL    ReadSides
+    CALL    IsValidReading
+    SUB     TurnValue        ; Check if valid
+    JZERO   DoneValid        ; Valid Reading
+    IN      THETA
+    ADD     DEG90
+    JPOS    TurnLoop        ; Still not 90 degrees yet
+    LOAD    TurnValue
+    ADDI    2
+    STORE   TurnValue        ; Decrement checker by 2 (try 4, then 6, then 8)
+    SUB     8
+    JPOS    Failed
+    JUMP    TryTurning
+    
+DoneValid:
+    RETURN
+Failed:
     RETURN
     
+TurnUntilValid:
+    LOAD    FSlow
+    CALL    TurnMotors
+    CALL    DispLCD
+    CALL    ReadSides
+    
+    CALL    IsValidReading
+    JNEG    TurnUntilValid ; Loop until something close by
+    CALL    StopMotors
+    RETURN
+
+FtAmount:   DW  0
+FtCount:    DW  0
 GetFeet:                ; Converts AC sensor reading to feet
+    STORE   FtAmount
     LOAD    Zero
-    STORE   Args2
+    STORE   FtCount
 FeetLoop:
-    SUB     OneFootDist
-    STORE   Args2
-    LOAD    Args
+    LOAD    FtCount
     ADDI    1
-    STORE   Args        ; Store feet counted
-    LOAD    Args2       ; Still positive ? Then another foot long
-    JPOS    FeetLoop
-    LOAD    Args        ; Store output value in AC to return
+    STORE   FtCount        ; Store feet counted
+    LOAD    FtAmount
+    SUB     OneFtDist
+    STORE   FtAmount
+    JPOS    FeetLoop    ; Still positive ? Then another foot long
+    LOAD    FtCount        ; Store output value in AC to return
     RETURN    
 
+DispLCD:
+    LOAD    Temp
+    OUT     LCD
+    RETURN
+
+MoveMotors:
+    LOAD    MotorSpeed
+    JUMP    MoveMotorsAC
 StopMotors:             ; Stops all motors
     LOAD    Zero
-MoveMotors:             ; Sets motor velocity to AC
-    OUT     LVELCMD
-    OUT     RVELCMD
-    RETURN
+MoveMotorsAC:            ; Sets motor velocity to AC
+    STORE   VelL
+    STORE   VelR
+    JUMP    UpdateMotors
+
+BrakeMotors:
+    LOADI   0
+    SUB     VelL
+    STORE   VelL
+    LOADI   0
+    SUB     VELR
+    STORE   VELR
+    JUMP    UpdateMotors
     
+TurnMotorsFSlow:
+    LOAD    FSlow
+    JUMP    TurnMotorsAC
+TurnMotorsBSlow:
+    LOADI   0
+    SUB     FSlow
+    JUMP    TurnMotorsAC
 TurnMotors:             ; Sets motor velocity to AC (turning)
-    STORE   Args
-    OUT     LVELCMD
+    LOAD    MotorSpeed
+TurnMotorsAC:
+    STORE   VelL
     LOAD    Zero
-    SUB     Args
+    SUB     VelL
+    OUT     VelR
+    JUMP    UpdateMotors
+
+UpdateMotors:
+    LOAD    VelL
+    OUT     LVELCMD
+    LOAD    VelR
     OUT     RVELCMD
     RETURN
     
-Add360:
-    ADD     DEG360
 Mod360:
     JNEG    Add360
+Sub360:
+    SUB     DEG360
+    JPOS    Sub360
+Add360:
+    ADD     DEG360
+    JNEG    Add360
     RETURN
-    
-    
+
+AbsArgs:    DW  0
 AbsoluteVal:
     JNEG    OppositeSign
     RETURN
 OppositeSign:           ; Returns with AC as (-AC)
-    STORE   Args
+    STORE   AbsArgs
     LOAD    Zero
-    SUB     Args
+    SUB     AbsArgs
     RETURN
 
 Wait1:  LOADI   10      ; Wait for 1 second
@@ -368,11 +352,14 @@ NL: DW      &H0A1B
 ;***************************************************************
 Temp:       DW  0   ; Temporary Variable
 Temp2:      DW  0   ; Temporary Variable 2
-Args:       DW  0   ; "Function" Argument/Variable
-Args2:      DW  0   ; "Function" Argument/Variable 2
-Args3:      DW  0   ; "Function" Argument/Variable 3
+MotorSpeed: DW  0   ; Motor Speed
 WaitTime:   DW  0   ; Input to Wait
 DistCutoff: DW  0   ; Distance Cutoff
+DistLeft:   DW  0
+DistRight:  DW  0
+
+VelL:       DW  0
+VelR:       DW  0
 
 ;OUR VARIABLES
 X1:         DW  0
@@ -385,7 +372,7 @@ X7:         DW  0
 Y7:         DW  0
 
 A:          DW  0
-OneFootDist:    DW  304 ; roughly 304.8 mm per ft (but ticks are ~1.05 mm, so about 290.3 ticks)
+OneFtDist:  DW  304 ; roughly 304.8 mm per ft (but ticks are ~1.05 mm, so about 290.3 ticks)
 divsave:    DW  0
 
 B:          DW  0
