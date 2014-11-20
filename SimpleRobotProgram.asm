@@ -49,7 +49,7 @@ WaitForUser:            ; Wait for user to press PB3
 Main:                   ; Program starts here.
     CALL    StopMotors  ; Reset robot
     OUT     RESETPOS
-    LOADI   &B00100001  ; Enable sensor 6
+    LOADI   &B00101101  ; Enable sides sensors (1 & 5) and front sensors (2 & 3)
     OUT     SONAREN
     LOAD    OneFtDist     ; We're using a cutoff distance of 3 feet
     ADD     TwoFeet
@@ -58,12 +58,15 @@ Main:                   ; Program starts here.
     
     CALL    TryTurning
     LOADI   0
-    OUT     SONAREN
+    ;OUT     SONAREN
 DieHard:
     LOADI   &HFFFF
-    OUT     SSEG1
+    ;OUT     SSEG1
+    CALL    ReadSides
+    CALL    IsValidReading
+    OUT     LCD
     LOAD    Temp
-    OUT     SSEG2
+    ;OUT     SSEG2
     JUMP    DieHard
  
 Die:                    ; Permadeath (and stops when program is complete)
@@ -95,11 +98,13 @@ ReadInput:
     RETURN
 
 SideArgs:   DW  0       ; Variable for reading side distances
+Error:      DW  50     ; Error to ignore robot width
 ReadSides:  
     IN      Dist0       ; Read sensor 0 (left side)
     STORE   SideArgs    ; Store
     IN      Dist5       ; Read sensor 5 (right side)
     ADD     SideArgs    ; Add left side
+    ADD     Error
     STORE   SideArgs    ; Store
     RETURN
 
@@ -113,39 +118,70 @@ IsValidReading:         ; Checks if correctly seeing a distance of 8, 10, or 12 
     ADDI    -2
     JZERO   Read6       ; Sees 6 squares on either side
     LOADI   -1          ; Bad reading
-    OUT     SSEG1       ; Out to SSEG1 for testing
+    OUT     LCD       ; Out to SSEG1 for testing
     RETURN
 Read4:
     LOADI   4           ; Load 4 for output
-    OUT     SSEG1       ; Out to SSEG1 for testing
+    OUT     LCD       ; Out to SSEG1 for testing
     RETURN
 Read5:
     LOADI   5           ; Load 5 for output
-    OUT     SSEG1       ; Out to SSEG1 for testing
+    OUT     LCD       ; Out to SSEG1 for testing
     RETURN
 Read6:
     LOADI   6           ; Load 6 for output
-    OUT     SSEG1       ; Out to SSEG1 for testing
+    OUT     LCD       ; Out to SSEG1 for testing
     RETURN
 
-TryDistValue:  DW  4
+Counter:        DW  3  
+TryDistValue:   DW  4
+FrontCutoff:    DW  1000
 TryTurning:             ; Tries to turn until it detects a valid orientation based on side distance
     OUT     RESETPOS    ; Needs to be reworked to incorporate front distance as well
-TurnLoop:
     CALL    TurnMotorsFSlow
+TurnLoop45:
+    CALL    UpdateMotors
+    CALL    Wait1
+    LOAD    Counter
+    ADDI    -1
+    STORE   Counter
+    JPOS    TurnLoop45
+TurnCheck:
     CALL    ReadSides
     CALL    IsValidReading
-    SUB     TryDistValue    ; Check if valid
-    JZERO   DoneValid       ; Valid Reading
-    IN      THETA
-    ADD     DEG90
-    JPOS    TurnLoop        ; Still not 90 degrees yet
-    LOAD    TryDistValue
-    ADDI    2
-    STORE   TryDistValue    ; Decrement checker by 2 (try 4, then 6, then 8)
-    SUB     8
-    JPOS    Failed
-    JUMP    TryTurning
+    JPOS    TurnLoop45
+TurnLoop:
+    CALL    UpdateMotors
+    CALL    ReadSides
+    CALL    IsValidReading
+    JNEG    TurnLoop
+    IN      DIST3
+    OUT     SSEG2
+    IN      DIST2
+    OUT     SSEG1
+    IN      DIST3
+    SUB     FrontCutoff
+    JPOS    TurnLoop
+    
+    ;IN      DIST3
+    ;OUT     SSEG2
+    ;SUB     FrontCutoff
+    ;JPOS    TurnLoop
+    CALL    BrakeMotors
+    RETURN
+    
+
+    ;SUB     TryDistValue    ; Check if valid
+    ;JZERO   DoneValid       ; Valid Reading
+    ;IN      THETA
+    ;ADD     DEG90
+    ;JPOS    TurnLoop        ; Still not 90 degrees yet
+    ;LOAD    TryDistValue
+    ;ADDI    2
+    ;STORE   TryDistValue    ; Decrement checker by 2 (try 4, then 6, then 8)
+    ;SUB     8
+    ;JPOS    Failed
+    ;JUMP    TryTurning
     
 DoneValid:
     RETURN
@@ -215,19 +251,22 @@ TurnMotorsAC:
     STORE   VelL
     LOAD    Zero
     SUB     VelL
-    OUT     VelR
+    STORE   VelR
     JUMP    UpdateMotors
 
 BrakeMotors:
     LOADI   0
     SUB     VelL
     STORE   VelL
+    LOADI   0
+    SUB     VelR
+    STORE   VelR
     CALL    UpdateMotors
-    LOADI   7
+    LOADI   4
     CALL    WaitAC
     LOADI   0
-    SUB     VELR
-    STORE   VELR
+    STORE   VelR
+    STORE   VelL
     JUMP    UpdateMotors
     
 UpdateMotors:
@@ -446,8 +485,8 @@ Deg90:      DW  90        ; 90 degrees in odometry units
 Deg180:     DW  180       ; 180
 Deg270:     DW  270       ; 270
 Deg360:     DW  360       ; can never actually happen; for math only
-FSlow:      DW  100       ; 100 is about the lowest velocity value that will move
-RSlow:      DW  -100
+FSlow:      DW  130       ; 100 is about the lowest velocity value that will move
+RSlow:      DW  -130
 FMid:       DW  350       ; 350 is a medium speed
 RMid:       DW  -350
 FFast:      DW  500       ; 500 is almost max speed (511 is max)
