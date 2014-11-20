@@ -79,56 +79,70 @@ DEAD: DW    &HDEAD
 ;* Subroutines
 ;***************************************************************
 
-SideArgs:   DW  0
-ReadSides:
-    IN      Dist0       ; Read sensor 6
-    STORE   SideArgs    ; Subtract cutoff
-    IN      Dist5
-    ADD     SideArgs
-    STORE   SideArgs
+First5Bits: EQU &B11111
+ReadInput:
+    IN      SWITCHES
+    AND     First5Bits  ; Look only at 1st 5 bits
+    STORE   Dist1       ; Destination 1
+    IN      SWITCHES
+    SHIFT   -5          ; Bring to front, chopping off 1st 5 bits (destination 1)
+    AND     First5Bits  ; Look only at new 1st 5 bits
+    STORE   Dist2       ; Destination 2
+    IN      SWITCHES
+    SHIFT   -10         ; Bring to front, chopping off 1st 10 bits (destination 1 & 2)
+    AND     First5Bits  ; Look only at new 1st 5 bits
+    STORE   Dist3       ; Destination 3
     RETURN
 
-IsValidReading:
+SideArgs:   DW  0       ; Variable for reading side distances
+ReadSides:  
+    IN      Dist0       ; Read sensor 0 (left side)
+    STORE   SideArgs    ; Store
+    IN      Dist5       ; Read sensor 5 (right side)
+    ADD     SideArgs    ; Add left side
+    STORE   SideArgs    ; Store
+    RETURN
+
+IsValidReading:         ; Checks if correctly seeing a distance of 8, 10, or 12 feet
     CALL    GetFeet
     STORE   Temp
-    ADDI    -8
-    JZERO   Read4
+    ADDI    -8          
+    JZERO   Read4       ; Sees 4 squares on either side
     ADDI    -2
-    JZERO   Read6
+    JZERO   Read5       ; Sees 5 squares on either side
     ADDI    -2
-    JZERO   Read8
-    LOADI   -1
-    OUT     SSEG1
+    JZERO   Read6       ; Sees 6 squares on either side
+    LOADI   -1          ; Bad reading
+    OUT     SSEG1       ; Out to SSEG1 for testing
     RETURN
 Read4:
-    LOADI   4
-    OUT     SSEG1
+    LOADI   4           ; Load 4 for output
+    OUT     SSEG1       ; Out to SSEG1 for testing
+    RETURN
+Read5:
+    LOADI   5           ; Load 5 for output
+    OUT     SSEG1       ; Out to SSEG1 for testing
     RETURN
 Read6:
-    LOADI   6
-    OUT     SSEG1
-    RETURN
-Read8:
-    LOADI   8
-    OUT     SSEG1
+    LOADI   6           ; Load 6 for output
+    OUT     SSEG1       ; Out to SSEG1 for testing
     RETURN
 
-TurnValue:  DW  4
-    
-TryTurning:
-    OUT     RESETPOS
+TryDistValue:  DW  4
+TryTurning:             ; Tries to turn until it detects a valid orientation based on side distance
+    OUT     RESETPOS    ; Needs to be reworked to incorporate front distance as well
 TurnLoop:
     CALL    TurnMotorsFSlow
     CALL    ReadSides
     CALL    IsValidReading
-    SUB     TurnValue        ; Check if valid
-    JZERO   DoneValid        ; Valid Reading
+    SUB     TryDistValue    ; Check if valid
+    JZERO   DoneValid       ; Valid Reading
     IN      THETA
     ADD     DEG90
     JPOS    TurnLoop        ; Still not 90 degrees yet
-    LOAD    TurnValue
+    LOAD    TryDistValue
     ADDI    2
-    STORE   TurnValue        ; Decrement checker by 2 (try 4, then 6, then 8)
+    STORE   TryDistValue    ; Decrement checker by 2 (try 4, then 6, then 8)
     SUB     8
     JPOS    Failed
     JUMP    TryTurning
@@ -138,8 +152,8 @@ DoneValid:
 Failed:
     RETURN
     
-TurnUntilValid:
-    LOAD    FSlow
+TurnUntilValid:     ; Old attempt to turn until a valid reading
+    LOAD    FSlow   ; More prone to errors because odd angles
     CALL    TurnMotors
     CALL    DispLCD
     CALL    ReadSides
@@ -170,7 +184,14 @@ DispLCD:
     LOAD    Temp
     OUT     LCD
     RETURN
-
+    
+MoveMotorsBSlow:
+    LOADI   0
+    SUB     FSlow
+    JUMP    MoveMotorsAC
+MoveMotorsFSlow:
+    LOAD    FSlow
+    JUMP    MoveMotorsAC
 MoveMotors:
     LOAD    MotorSpeed
     JUMP    MoveMotorsAC
@@ -181,15 +202,6 @@ MoveMotorsAC:            ; Sets motor velocity to AC
     STORE   VelR
     JUMP    UpdateMotors
 
-BrakeMotors:
-    LOADI   0
-    SUB     VelL
-    STORE   VelL
-    LOADI   0
-    SUB     VELR
-    STORE   VELR
-    JUMP    UpdateMotors
-    
 TurnMotorsFSlow:
     LOAD    FSlow
     JUMP    TurnMotorsAC
@@ -206,6 +218,18 @@ TurnMotorsAC:
     OUT     VelR
     JUMP    UpdateMotors
 
+BrakeMotors:
+    LOADI   0
+    SUB     VelL
+    STORE   VelL
+    CALL    UpdateMotors
+    LOADI   7
+    CALL    WaitAC
+    LOADI   0
+    SUB     VELR
+    STORE   VELR
+    JUMP    UpdateMotors
+    
 UpdateMotors:
     LOAD    VelL
     OUT     LVELCMD
@@ -242,7 +266,7 @@ WaitLoop:               ; Wait for number of ticks
     SUB     WaitTime
     JNEG    WaitLoop
     RETURN
-    
+
 BattCheck:              ; Gets battery voltage, halts if too low (SetupI2C must be executed prior to this)
     CALL    GetBattLvl
     JZERO   BattCheck   ; A/D hasn't had time to initialize
@@ -350,6 +374,11 @@ NL: DW      &H0A1B
 ;***************************************************************
 ;* Variables
 ;***************************************************************
+
+Dest1:      DW  0
+Dest2:      DW  0
+Dest3:      DW  0
+
 Temp:       DW  0   ; Temporary Variable
 Temp2:      DW  0   ; Temporary Variable 2
 MotorSpeed: DW  0   ; Motor Speed
