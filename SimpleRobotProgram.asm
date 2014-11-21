@@ -53,11 +53,11 @@ Main:                   ; Program starts here.
     OUT     SONAREN
     
     CALL    ReadInput
-    JUMP    Forever
+    JUMP    Forever     ; Just testing for now, quit when done
     LOADI   0
     OUT     SONAREN
 DieHard:
-    CALL    ReadSides
+    CALL    ReadSides   ; Just for some simple testing of readings
     CALL    IsValidReading
     OUT     LCD
     JUMP    DieHard
@@ -80,7 +80,7 @@ DEAD: DW    &HDEAD
 ;   DO NOT CHANGE THESE
 ;   EVER
 ;   OR I WILL HUNT YOU DOWN
-;Posit#           |UP||LF||DN||RT|
+;Posit#           |UP||LF||DN||RT|  ; Position (X, Y) --> Up Lf Dn Rt
 Posit0:     DW  &B0011000000000011  ; Position (1, 1) --> 3, 0, 0, 3
 Posit1:     DW  &B0011000100000010  ; Position (2, 1) --> 3, 1, 0, 2
 Posit2:     DW  &B0001001000000001  ; Position (3, 1) --> 1, 2, 0, 1
@@ -120,32 +120,28 @@ Localize:
     ;ADD     CurrDown
     SHIFT   4
     ;ADD     CurrRight
-    STORE   CurrFootprint
-    CALL    ComparePosits
-    LOAD    TempRot
-    STORE   CurrRotat
-    LOAD    TempHead
-    ; GET X and Y POSITIONS
+    STORE   CurrFootprint       ; Generate the current robot footprint
+    CALL    ComparePosits       ; Find out where the robot currently is, which stores CurrX, CurrY, CurrRotat
     RETURN
 
-FirstFourBits:  DW  &HF000
-TempHead:       DW  0
-TempRot:        DW  -1
+FirstFourBits:  DW  &HF000      ; The first 4 bits (used for rotations0
+TempHead:       DW  0           ; The temp variable for the robot footprint
+TempRot:        DW  -1          ; The temp variable for the robot rotation
 ComparePosits:
-    LOAD    CurrFootprint
-    STORE   TempHead
+    LOAD    CurrFootprint       ; Take the current footprint
+    STORE   TempHead            ; Copy it for safekeeping
 CompareLoop:
-    LOAD    TempRot
+    LOAD    TempRot             ; Start incrementing the rotation
     ADDI    1
     STORE   TempRot
 Next0:                      ; Position 0
     LOADI   1
-    STORE   CurrPosX
+    STORE   CurrPosX        ; Store the X coordinate
     LOADI   1
-    STORE   CurrPosY
+    STORE   CurrPosY        ; Store the Y coordinate
     LOAD    Posit0
     SUB     TempHead
-    JZERO   DoneComparePosits
+    JZERO   DoneComparePosits ; Check difference to see if footprint matches
 Next1:                      ; Position 1
     LOADI   2
     STORE   CurrPosX
@@ -293,35 +289,40 @@ Next23:                     ; Position 23
 
     LOAD    TempHead
     ADDI    -3
-    JNEG    NextContinue
-    JUMP    DieHard
+    JNEG    NextContinue    ; Has it fewer more than 4 times?
+    LOADI   -1              ; If so, set coordinates to (-1, -1)
+    STORE   CurrX
+    STORE   CurrY
+    JUMP    DieHard         ; Die
 NextContinue:
-    LOAD    TempHead
-    AND     FirstFourBits
-    SHIFT   -12
-    STORE   Temp
-    LOAD    TempHead
-    SHIFT   4
-    ADD     Temp
-    STORE   TempHead
-    JUMP    CompareLoop
+    LOAD    TempHead        ; Load the heading
+    AND     FirstFourBits   ; Get the 4 MSBs
+    SHIFT   -12             ; Shift them to the far right
+    STORE   Temp            ; Store them
+    LOAD    TempHead        ; Get the heading back
+    SHIFT   4               ; Shift them to the left (4 LSBs are now 0)
+    ADD     Temp            ; Add the 4 original MSBs
+    STORE   TempHead        ; Store it
+    JUMP    CompareLoop     ; Keep on chuggin'
 DoneComparePosits:
+    LOAD    TempRot         ; Found a match! Update the rotation
+    STORE   CurrRotat
     RETURN
 
-Dest1:      DW  0
-Dest2:      DW  0
-Dest3:      DW  0
-SubX:       DW  0
-TempX:      DW  0
-TempY:      DW  0
-First5Bits: DW  &B0000000000011111
-Dest1X:     DW  0
-Dest1Y:     DW  0
-Dest2X:     DW  0
-Dest2Y:     DW  0
-Dest3X:     DW  0
-Dest3Y:     DW  0
-ReadInput:
+Dest1:      DW  0           ; Destination 1 ID (from switches)
+Dest2:      DW  0           ; Destination 2 ID (from switches)
+Dest3:      DW  0           ; Destination 3 ID (from switches)
+SubX:       DW  0           ; Temp variable for math
+TempX:      DW  0           ; Temp variable while updating X coordinate
+TempY:      DW  0           ; Temp variable while updating Y coordinate
+First5Bits: DW  &B0000000000011111 ; First 5 bits (used for obtaining the correct destinations from switches)
+Dest1X:     DW  0           ; Destination 1 X coordinate
+Dest1Y:     DW  0           ; Destination 1 Y coordinate
+Dest2X:     DW  0           ; Destination 2 X coordinate
+Dest2Y:     DW  0           ; Destination 2 Y coordinate
+Dest3X:     DW  0           ; Destination 3 X coordinate
+Dest3Y:     DW  0           ; Destination 3 Y coordinate
+ReadInput:              ; Reads input switches, stores the (X, Y) coordinates of each
     IN      SWITCHES
     OUT     LCD
     AND     First5Bits  ; Look only at 1st 5 bits
@@ -337,10 +338,10 @@ ReadInput:
     STORE   Dest3       ; Destination 3
     
     LOAD    Dest1
-    CALL    ReadX
+    CALL    ReadX       ; Find the X coordinate from the Position #
     STORE   Dest1X
     LOAD    Dest1
-    CALL    ReadY
+    CALL    ReadY       ; Find the Y coordinate from the Position #
     STORE   Dest1Y
     
     LOAD    Dest2
@@ -357,32 +358,32 @@ ReadInput:
     CALL    ReadY
     STORE   Dest3Y
     
-    LOAD    Dest1X
-    SHIFT   8
-    ADD     Dest1Y
-    OUT     SSEG1    
+    LOAD    Dest1X      ; Displaying:  Get X coordinate
+    SHIFT   8           ; Shift it to left 2 digits of SSEG/LCD
+    ADD     Dest1Y      ; Add Y coordinate (right 2 digits)
+    OUT     SSEG1       ; Display
     RETURN
 
-ReadX:
-    STORE   TempX
+ReadX:                  ; Gets the X coordinate from the position #
+    STORE   TempX       ; Store position # temporarily
 ReadXLoop:
     LOAD    TempX
-    ADDI    -6
+    ADDI    -6          ; Keep on subtracting 6
     STORE   TempX
     JPOS    ReadXLoop
     JZERO   ReadXLoop
-    ADDI    6
-    ADDI    1
+    ADDI    6           ; Until negative, fix value
+    ADDI    1           ; And adjust for starting coordinate (1, 1)
     RETURN
     
-ReadY:
-    STORE   SubX
+ReadY:                  ; Gets the Y coordinate from the position #
+    STORE   SubX        ; Store position # temporarily
     LOADI   0
-    STORE   TempY
+    STORE   TempY       ; Set Y to 0
 ReadYLoop:
     LOAD    TempY
     ADDI    1
-    STORE   TempY
+    STORE   TempY       ; Increment Y while still > 0 (Square 0 --> 1, Height 6 --> 2)
     LOAD    SubX
     ADDI    -6
     STORE   SubX
@@ -393,7 +394,7 @@ ReadYLoop:
 
 SideArgs:   DW  0       ; Variable for reading side distances
 Error:      DW  50      ; Error to ignore robot width
-ReadSides:  
+ReadSides:              ; Read side sensors and get total (with error accounting)
     IN      Dist0       ; Read sensor 0 (left side)
     STORE   SideArgs    ; Store
     IN      Dist5       ; Read sensor 5 (right side)
@@ -412,91 +413,90 @@ IsValidReading:         ; Checks if correctly seeing a distance of 8, 10, or 12 
     ADDI    -2
     JZERO   Read6       ; Sees 6 squares on either side
     LOADI   -1          ; Bad reading
-    OUT     LCD       ; Out to SSEG1 for testing
+    OUT     LCD         ; Out to SSEG1 for testing
     RETURN
 Read4:
     LOADI   4           ; Load 4 squares for output
-    OUT     LCD       ; Out to SSEG1 for testing
+    OUT     LCD         ; Out to SSEG1 for testing
     RETURN
 Read5:
     LOADI   5           ; Load 5 squares for output
-    OUT     LCD       ; Out to SSEG1 for testing
+    OUT     LCD         ; Out to SSEG1 for testing
     RETURN
 Read6:
     LOADI   6           ; Load 6 squares for output
-    OUT     LCD       ; Out to SSEG1 for testing
+    OUT     LCD         ; Out to SSEG1 for testing
     RETURN
 
 Counter:        DW  3  
 FrontCutoff:    DW  1000
 TryTurning:             ; Tries to turn until it detects a valid orientation based on side distance
-    OUT     RESETPOS    ; Needs to be reworked to incorporate front distance as well
+    OUT     RESETPOS
     CALL    TurnMotorsFSlow
-TurnLoop45:
+TurnLoopStart:          ; Turns a bit before detecting a good distance - starts turning to build up inertia
     CALL    UpdateMotors
     CALL    Wait1
     LOAD    Counter
     ADDI    -1
     STORE   Counter
-    JPOS    TurnLoop45
-TurnCheck:
+    JPOS    TurnLoopStart
+TurnCheck:              ; Makes sure it doesn't start reading a good distance - odd things happen when seeing a wall immediately.
     CALL    ReadSides
     CALL    IsValidReading
-    JPOS    TurnLoop45
-TurnLoop:
+    JPOS    TurnLoopStart
+TurnLoop:               ; Turns the robot until it reads a good distance (going sideways) as well as one in front
     CALL    UpdateMotors
     CALL    ReadSides
     CALL    IsValidReading
     JNEG    TurnLoop
     IN      DIST3
-    OUT     SSEG2
+    OUT     SSEG2       ; For testing - shows distance on Sensor 3
     SUB     FrontCutoff
     JPOS    TurnLoop
     CALL    BrakeMotors
     
-    LOADI   4
-    CALL    ReadSides
+    CALL    ReadSides   ; Tests still sees good distance after breaking
     CALL    IsValidReading
-    JNEG    TurnLoop
+    JNEG    TurnLoop    ; Tries again if invalid
     RETURN
 
 FtAmount:   DW  0
 FtCount:    DW  0
-GetFeet:                ; Converts AC sensor reading to feet
-    STORE   FtAmount
+GetFeet:                ; Converts AC sensor reading to feet. Effectively Math.ceiling(sensorVal/FootDistance)
+    STORE   FtAmount    ; Stores AC reading
     LOADI   0
-    STORE   FtCount
-FeetLoop:
+    STORE   FtCount     ; Resets counter
+FeetLoop:               ; Loops counting feet
     LOAD    FtCount
     ADDI    1
-    STORE   FtCount        ; Store feet counted
+    STORE   FtCount     ; Store feet counted
     LOAD    FtAmount
     SUB     OneFtDist
     STORE   FtAmount
     JPOS    FeetLoop    ; Still positive ? Then another foot long
-    LOAD    FtCount        ; Store output value in AC to return
+    LOAD    FtCount     ; Store output value in AC to return
     RETURN    
 
-MoveMotorsFSlow:
+MoveMotorsFSlow:        ; Moves the robot at the default slow velocity
     LOAD    FSlow
     JUMP    MoveMotorsAC
-StopMotors:             ; Stops all motors
+StopMotors:             ; Sets all motors to 0
     LOADI   0
-MoveMotorsAC:            ; Sets motor velocity to AC
+MoveMotorsAC:           ; Sets motor velocity to AC
     STORE   VelL
     STORE   VelR
     JUMP    UpdateMotors
 
-TurnMotorsFSlow:
+TurnMotorsFSlow:        ; Rotates the robot at the default slow velocity
     LOAD    FSlow
-TurnMotorsAC:
+TurnMotorsAC:           ; Rotates the robot at the AC velocity
     STORE   VelL
     LOADI   0
     SUB     VelL
     STORE   VelR
     JUMP    UpdateMotors
 
-BrakeMotors:
+BrakeMotors:            ; Provides a 'braking' system by inverting the velocities for a short time, then setting to 0
     LOADI   0
     SUB     VelL
     STORE   VelL
@@ -513,14 +513,14 @@ BrakeMotors:
     
 VelL:       DW  0
 VelR:       DW  0
-UpdateMotors:
+UpdateMotors:           ; Reassigns the motor velocities to the motor controllers - use in loops
     LOAD    VelL
     OUT     LVELCMD
     LOAD    VelR
     OUT     RVELCMD
     RETURN
     
-Mod360:
+Mod360:                 ; Mods the input by 360
     JNEG    Add360
 Sub360:
     SUB     DEG360
@@ -531,7 +531,7 @@ Add360:
     RETURN
 
 AbsArgs:    DW  0
-AbsoluteVal:
+AbsoluteVal:            ; Gets the absolute value
     JNEG    OppositeSign
     RETURN
 OppositeSign:           ; Returns with AC as (-AC)
