@@ -50,13 +50,14 @@ Main:                   ; Program starts here.
     CALL    StopMotors  ; Reset robot
     OUT     RESETPOS
     LOADI   &B00101101  ; Enable sides sensors (1 & 5) and front sensors (2 & 3)
-    OUT     SONAREN
+    ;OUT     SONAREN
     LOAD    OneFtDist     ; We're using a cutoff distance of 3 feet
     ADD     TwoFeet
     LOADI   OneFtDist
     STORE   DistCutoff
     
-    CALL    TryTurning
+    CALL    ReadInput
+    JUMP    Forever
     LOADI   0
     ;OUT     SONAREN
 DieHard:
@@ -75,6 +76,7 @@ Die:                    ; Permadeath (and stops when program is complete)
     LOAD    DEAD         ; An indication that we are dead
     OUT     SSEG2
 Forever:
+    CALL    ReadInput
     JUMP    Forever      ; Do this forever.
 DEAD: DW    &HDEAD
 
@@ -82,19 +84,258 @@ DEAD: DW    &HDEAD
 ;* Subroutines
 ;***************************************************************
 
-First5Bits: EQU &B11111
+;   DO NOT CHANGE THESE
+;   EVER
+;   OR I WILL HUNT YOU DOWN
+;Posit#           |UP||DN||LF||RT|
+Posit0:     DW  &B0011000000000011  ; Position (1, 1) --> 3, 0, 0, 3
+Posit1:     DW  &B0011000100000010  ; Position (2, 1) --> 3, 1, 0, 2
+Posit2:     DW  &B0001001000000001  ; Position (3, 1) --> 1, 2, 0, 1
+Posit3:     DW  &B0001001100000000  ; Position (4, 1) --> 1, 3, 0, 0
+;Posit4
+;Posit5
+Posit6:     DW  &B0010000000010011  ; Position (1, 2) --> 2, 0, 1, 3
+Posit7:     DW  &B0010000100010011  ; Position (2, 2) --> 2, 1, 1, 3
+Posit8:     DW  &B0000001000010001  ; Position (3, 2) --> 0, 2, 1, 1
+Posit9:     DW  &B0000001100010000  ; Position (4, 2) --> 0, 3, 1, 0
+;Posit10
+;Posit11
+Posit12:    DW  &B0001000000100100  ; Position (1, 3) --> 1, 0, 2, 4
+Posit13:    DW  &B0001000100100011  ; Position (2, 3) --> 1, 1, 2, 3
+Posit14:    DW  &B0001001000000010  ; Position (3, 3) --> 1, 2, 0, 2
+Posit15:    DW  &B0001001100000001  ; Position (4, 3) --> 1, 2, 0, 1
+Posit16:    DW  &B0001010000000000  ; Position (5, 3) --> 1, 4, 0, 0
+;Posit17
+Posit18:    DW  &B0000000000110101  ; Position (1, 4) --> 0, 0, 3, 5
+Posit19:    DW  &B0000000100110100  ; Position (2, 4) --> 0, 1, 3, 4
+Posit20:    DW  &B0000001000010011  ; Position (3, 4) --> 0, 2, 1, 3
+Posit21:    DW  &B0000001000010011  ; Position (4, 4) --> 0, 3, 1, 2
+Posit22:    DW  &B0000010000010001  ; Position (5, 4) --> 0, 4, 1, 1
+Posit23:    DW  &B0000010100000000  ; Position (6, 4) --> 0, 5, 0, 0
+
+CurrUp:     DW  0
+CurrDown:   DW  0
+CurrLeft:   DW  0
+CurrRight:  DW  0
+CurrHead:   DW  0
+CurrRotat:  DW  0
+
+Localize:
+
+    ;READ STUFF
+
+
+    LOAD    CurrUp
+    SHIFT   4
+    ADD     CurrLeft
+    SHIFT   4
+    ADD     CurrDown
+    SHIFT   4
+    ADD     CurrRight
+    STORE   CurrHead
+    CALL    ComparePosits
+    LOAD    TempRot
+    STORE   CurrRotat
+    LOAD    TempHead
+    ; GET X and Y POSITIONS
+    RETURN
+
+    
+    
+FirstFourBits:   DW  &HF000
+TempHead:       DW  -1
+TempRot:        DW  -1
+ComparePosits:
+    LOAD    CurrHead
+    STORE   TempHead
+CompareLoop:
+    LOAD    TempRot
+    ADDI    1
+    STORE   TempRot
+                            ; Position 0
+    LOAD    Posit0
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 1
+    LOAD    Posit1
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 2
+    LOAD    Posit2
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 3
+    LOAD    Posit3
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 6
+    LOAD    Posit6
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 7
+    LOAD    Posit7
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 8
+    LOAD    Posit8
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 9
+    LOAD    Posit9
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 12
+    LOAD    Posit12
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 13
+    LOAD    Posit13
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 14
+    LOAD    Posit14
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 15
+    LOAD    Posit15
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 16
+    LOAD    Posit16
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 18
+    LOAD    Posit18
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 19
+    LOAD    Posit19
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 20
+    LOAD    Posit20
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 21
+    LOAD    Posit21
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 22
+    LOAD    Posit22
+    SUB     TempHead
+    JZERO   DoneComparePosits
+                            ; Position 23
+    LOAD    Posit23
+    SUB     TempHead
+    JZERO   DoneComparePosits
+    
+    LOAD    TempHead
+    ADDI    -3
+    JZERO   DieHard
+    JPOS    DieHard
+    
+    LOAD    TempHead
+    AND     FirstFourBits
+    SHIFT   -12
+    STORE   Temp
+    LOAD    TempHead
+    SHIFT   4
+    ADD     Temp
+    STORE   TempHead
+    JUMP    CompareLoop
+    
+DoneComparePosits:
+    RETURN
+
+    
+    
+Dest1:      DW  0
+Dest2:      DW  0
+Dest3:      DW  0
+SubX:       DW  0
+TempX:      DW  0
+TempY:      DW  0
+First5Bits: DW  &B0000000000011111
+Dest1X:     DW  0
+Dest1Y:     DW  0
+Dest2X:     DW  0
+Dest2Y:     DW  0
+Dest3X:     DW  0
+Dest3Y:     DW  0
 ReadInput:
     IN      SWITCHES
+    OUT     LCD
     AND     First5Bits  ; Look only at 1st 5 bits
-    STORE   Dist1       ; Destination 1
+    STORE   Dest1       ; Destination 1
+    OUT     SSEG2
     IN      SWITCHES
     SHIFT   -5          ; Bring to front, chopping off 1st 5 bits (destination 1)
     AND     First5Bits  ; Look only at new 1st 5 bits
-    STORE   Dist2       ; Destination 2
+    STORE   Dest2       ; Destination 2
     IN      SWITCHES
     SHIFT   -10         ; Bring to front, chopping off 1st 10 bits (destination 1 & 2)
     AND     First5Bits  ; Look only at new 1st 5 bits
-    STORE   Dist3       ; Destination 3
+    STORE   Dest3       ; Destination 3
+    
+    LOADI   0
+    STORE   SubX
+    STORE   TempX
+    STORE   TempY
+    
+    LOAD    Dest1
+    CALL    ReadX
+    STORE   Dest1X
+    LOAD    Dest1
+    CALL    ReadY
+    STORE   Dest1Y
+    
+    LOAD    Dest2
+    CALL    ReadX
+    STORE   Dest2X
+    LOAD    Dest2
+    CALL    ReadY
+    STORE   Dest2Y
+    
+    LOAD    Dest3
+    CALL    ReadX
+    STORE   Dest3X
+    LOAD    Dest3
+    CALL    ReadY
+    STORE   Dest3Y
+    
+    LOAD    Dest1X
+    SHIFT   8
+    ADD     Dest1Y
+    OUT     SSEG1
+    
+    RETURN
+
+ReadX:
+    STORE   TempX
+ReadXLoop:
+    LOAD    TempX
+    ADDI    -6
+    STORE   TempX
+    JPOS    ReadXLoop
+    JZERO   ReadXLoop
+    ADDI    6
+    ADDI    1
+    RETURN
+    
+ReadY:
+    STORE   SubX
+    LOADI   0
+    STORE   TempY
+ReadYLoop:
+    LOAD    TempY
+    ADDI    1
+    STORE   TempY
+    LOAD    SubX
+    ADDI    -6
+    STORE   SubX
+    JPOS    ReadYLoop
+    JZERO   ReadYLoop
+    LOAD   TempY
     RETURN
 
 SideArgs:   DW  0       ; Variable for reading side distances
@@ -121,15 +362,15 @@ IsValidReading:         ; Checks if correctly seeing a distance of 8, 10, or 12 
     OUT     LCD       ; Out to SSEG1 for testing
     RETURN
 Read4:
-    LOADI   4           ; Load 4 for output
+    LOADI   4           ; Load 4 squares for output
     OUT     LCD       ; Out to SSEG1 for testing
     RETURN
 Read5:
-    LOADI   5           ; Load 5 for output
+    LOADI   5           ; Load 5 squares for output
     OUT     LCD       ; Out to SSEG1 for testing
     RETURN
 Read6:
-    LOADI   6           ; Load 6 for output
+    LOADI   6           ; Load 6 squares for output
     OUT     LCD       ; Out to SSEG1 for testing
     RETURN
 
@@ -162,41 +403,17 @@ TurnLoop:
     IN      DIST3
     SUB     FrontCutoff
     JPOS    TurnLoop
-    
-    ;IN      DIST3
-    ;OUT     SSEG2
-    ;SUB     FrontCutoff
-    ;JPOS    TurnLoop
     CALL    BrakeMotors
-    RETURN
     
-
-    ;SUB     TryDistValue    ; Check if valid
-    ;JZERO   DoneValid       ; Valid Reading
-    ;IN      THETA
-    ;ADD     DEG90
-    ;JPOS    TurnLoop        ; Still not 90 degrees yet
-    ;LOAD    TryDistValue
-    ;ADDI    2
-    ;STORE   TryDistValue    ; Decrement checker by 2 (try 4, then 6, then 8)
-    ;SUB     8
-    ;JPOS    Failed
-    ;JUMP    TryTurning
+    LOADI   4
+    CALL    ReadSides
+    CALL    IsValidReading
+    JNEG    TurnLoop
+    RETURN
     
 DoneValid:
     RETURN
 Failed:
-    RETURN
-    
-TurnUntilValid:     ; Old attempt to turn until a valid reading
-    LOAD    FSlow   ; More prone to errors because odd angles
-    CALL    TurnMotors
-    CALL    DispLCD
-    CALL    ReadSides
-    
-    CALL    IsValidReading
-    JNEG    TurnUntilValid ; Loop until something close by
-    CALL    StopMotors
     RETURN
 
 FtAmount:   DW  0
@@ -216,11 +433,6 @@ FeetLoop:
     LOAD    FtCount        ; Store output value in AC to return
     RETURN    
 
-DispLCD:
-    LOAD    Temp
-    OUT     LCD
-    RETURN
-    
 MoveMotorsBSlow:
     LOADI   0
     SUB     FSlow
@@ -413,10 +625,6 @@ NL: DW      &H0A1B
 ;***************************************************************
 ;* Variables
 ;***************************************************************
-
-Dest1:      DW  0
-Dest2:      DW  0
-Dest3:      DW  0
 
 Temp:       DW  0   ; Temporary Variable
 Temp2:      DW  0   ; Temporary Variable 2
