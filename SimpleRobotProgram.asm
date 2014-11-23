@@ -110,17 +110,40 @@ CurrFootprint: DW  0
 CurrRotat:  DW  0
 CurrPosX:   DW  0
 CurrPosY:   DW  0
+GridCutoff: DW  100
 Localize:
+    IN      Dist0           ; After rotating 90, front reading
+    SUB     GridCutoff      ; Subtract enough to ignore current square
+    CALL    GetFeet         ; Convert to feet
+    SHIFT   -2              ; Convert to grid
+    SHIFT   12              ; Make 4 MSBs in footprint
+    STORE   CurrFootprint   ; Store in footprint
+    
+    IN      Dist5           ; After rotating 90, back reading
+    SUB     GridCutoff      ; Subtract enough to ignore current square
+    CALL    GetFeet
+    SHIFT   -2              ; Convert to grid
+    SHIFT   4
+    ADD     CurrFootprint
+    STORE   CurrFootprint
+    
+    ;CALL    Turn90Left      ; Turn 90 degrees to the left
+    
+    IN      Dist0           ; Left reading
+    SUB     GridCutoff      ; Subtract enough to ignore current square
+    CALL    GetFeet
+    SHIFT   -2              ; Convert to grid
+    SHIFT   8
+    ADD     CurrFootprint
+    STORE   CurrFootprint
+    
+    IN      Dist5           ; Right reading
+    SUB     GridCutoff      ; Subtract enough to ignore current square
+    CALL    GetFeet
+    SHIFT   -2              ; Convert to grid
+    ADD     CurrFootprint
+    STORE   CurrFootprint   ; Generate the current robot footprint
 
-    ;READ STUFF
-    ;LOAD    CurrUp
-    SHIFT   4
-    ;ADD     CurrLeft
-    SHIFT   4
-    ;ADD     CurrDown
-    SHIFT   4
-    ;ADD     CurrRight
-    STORE   CurrFootprint       ; Generate the current robot footprint
     CALL    ComparePosits       ; Find out where the robot currently is, which stores CurrX, CurrY, CurrRotat
     RETURN
 
