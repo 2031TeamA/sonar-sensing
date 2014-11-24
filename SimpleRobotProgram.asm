@@ -59,6 +59,8 @@ Main:                   ; Program starts here.
     
     
     ;CALL    ReadInput
+    ;CALL    Localize
+    CALL    TryTurning
     CALL    Localize
     LOAD    CurrPosX
     SHIFT   8
@@ -68,19 +70,12 @@ Main:                   ; Program starts here.
 DieHard:
     CALL    ReadSides   ; Just for some simple testing of readings
     CALL    IsValidReading
-    ;OUT     LCD
     CALL    StopMotors
     LOADI   0
     OUT     SONAREN
     LOAD    DEAD         ; An indication that we are dead
-    ;IN      THETA
-    ;CALL    LimitDeg180
-    ;OUT     LCD
     JUMP    DieHard
 
-Forever:
-    ;CALL    ReadInput
-    JUMP    Forever      ; Do this forever.
 DEAD: DW    &HDEAD
 
 ;***************************************************************
@@ -102,8 +97,8 @@ MoveFwdLoop:
     CALL    StopMotors
     RETURN
 
-LimitHigh:  DW  100
-LimitLow:   DW  70
+LimitHigh:  DW  115
+LimitLow:   DW  80
 LimitValue: DW  0
 LimitRoutine:
     STORE   LimitValue
@@ -120,7 +115,6 @@ LimitHigher:
     JNEG    RetLowCutoff
     LOAD    LimitValue
     RETURN
-    
 RetHighCutoff:
     LOAD    LimitHigh
     RETURN
@@ -128,11 +122,8 @@ RetLowCutoff:
     LOAD    LimitLow
     RETURN
     
-
 TurnLeft90:
     OUT     RESETPOS
-    ;LOADI   -100
-    ;CALL    TurnMotorsAC
 TurnLeftLoop:
     IN      THETA
     CALL    LimitDeg180
@@ -149,131 +140,74 @@ TurnLeftLoop:
 	RETURN
     
 TurnRight90:
-    LOADI   -100
-    CALL    TurnMotorsAC
+    OUT     RESETPOS
 TurnRightLoop:
-    CALL    UpdateMotors
+    IN      THETA
+    CALL    LimitDeg180
+    ADDI    91
+    SHIFT   2
+    CALL    LimitRoutine
+    CALL    TurnMotorsAC
 	IN      THETA
-	ADDI    100
-	JNEG    TurnRightLoop
-    CALL    StopMotors
+    CALL    LimitDeg180
+	ADDI    91
+	JPOS    TurnRightLoop
+    CALL    BrakeMotors
 	OUT     RESETPOS
 	RETURN
-
-CTimer_ISR:  ; Timer interrupt
-; The timer interrupt will be used to turn the robot,
-; correcting for turn rate, etc., at 20Hz.
-	LOAD   TCount
-	ADDI   1
-	STORE  TCount
-	
-	IN     THETA       ; get current angle
-	STORE  NowTheta    ; save for later use
-	SUB    DesTheta    ; subtract desired angle
-	CALL   Mod360      ; remove negative numbers
-	ADDI   -180        ; test which semicircle error is in
-	JPOS   NeedLeft    ; >180 means need left turn
-	JUMP   NeedRight   ; otherwise, need right turn
-NeedLeft:
-	LOAD   DesTheta
-	SUB    NowTheta    ; get the turn error
-	CALL   Mod360      ; fix errors around 0
-	SUB    DeadZone
-	JNEG   NoTurn      ; stop moving if close
-	ADD    DeadZone
-	ADDI   -100        ; check if >100
-	JNEG   TurnLeft
-	LOADI  0        ; remove excess
-TurnLeft:
-	ADDI   100         ; replace the 100 from before
-	SHIFT  2           ; multiply by 4
-	OUT    RVELCMD     ; set right wheel forward
-	XOR    NegOne
-	ADDI   1           ; negate number
-	OUT    LVELCMD     ; set left wheel backwards
-	RETI               ; exit ISR
-NeedRight:
-	LOAD   NowTheta
-	SUB    DesTheta    ; get the turn error
-	CALL   Mod360      ; fix errors around 0
-	SUB    DeadZone
-	JNEG   NoTurn      ; stop moving if close
-	ADD    DeadZone
-	ADDI   -100        ; check if >100
-	JNEG   TurnRight
-	LOADI  0        ; remove excess
-TurnRight:
-	ADDI   100         ; replace the 100 from before
-	SHIFT  2           ; multiply by 4
-	OUT    LVELCMD     ; set left wheel forward
-	XOR    NegOne
-	ADDI   1           ; negate number
-	OUT    RVELCMD     ; set left wheel backwards
-	RETI               ; exit ISR
-NoTurn:
-	LOADI  0
-	OUT    LVELCMD
-	OUT    RVELCMD
-	RETI
-	
-NowTheta:   DW 0
-DeadZone:   DW 3
-TCount:     DW 0
-DesTheta:   DW 0
-
 
 ;   DO NOT CHANGE THESE
 ;   EVER
 ;   OR I WILL HUNT YOU DOWN
-;Posit#           |UP||LF||DN||RT|  ; Position (X, Y) --> Up Lf Dn Rt
-Posit0:     DW  &H3003  ; Position (1, 1) --> 3, 0, 0, 3
-Posit1:     DW  &B0011000100000010  ; Position (2, 1) --> 3, 1, 0, 2
-Posit2:     DW  &B0001001000000001  ; Position (3, 1) --> 1, 2, 0, 1
-Posit3:     DW  &B0001001100000000  ; Position (4, 1) --> 1, 3, 0, 0
+;Posit#           ULDR  ; Position (X, Y) --> Up Lf Dn Rt
+Posit0:     DW  &H3003  ; Position (1, 1)
+Posit1:     DW  &H3102  ; Position (2, 1)
+Posit2:     DW  &H1201  ; Position (3, 1)
+Posit3:     DW  &H1300  ; Position (4, 1)
 ;Posit4
 ;Posit5
-Posit6:     DW  &B0010000000010011  ; Position (1, 2) --> 2, 0, 1, 3
-Posit7:     DW  &B0010000100010011  ; Position (2, 2) --> 2, 1, 1, 3
-Posit8:     DW  &B0000001000010001  ; Position (3, 2) --> 0, 2, 1, 1
-Posit9:     DW  &B0000001100010000  ; Position (4, 2) --> 0, 3, 1, 0
+Posit6:     DW  &H2013  ; Position (1, 2)
+Posit7:     DW  &H2112  ; Position (2, 2)
+Posit8:     DW  &H0211  ; Position (3, 2)
+Posit9:     DW  &H0310  ; Position (4, 2)
 ;Posit10
 ;Posit11
-Posit12:    DW  &B0001000000100100  ; Position (1, 3) --> 1, 0, 2, 4
-Posit13:    DW  &B0001000100100011  ; Position (2, 3) --> 1, 1, 2, 3
-Posit14:    DW  &B0001001000000010  ; Position (3, 3) --> 1, 2, 0, 2
-Posit15:    DW  &B0001001100000001  ; Position (4, 3) --> 1, 2, 0, 1
-Posit16:    DW  &B0001010000000000  ; Position (5, 3) --> 1, 4, 0, 0
+Posit12:    DW  &H1024  ; Position (1, 3)
+Posit13:    DW  &H1123  ; Position (2, 3)
+Posit14:    DW  &H1202  ; Position (3, 3)
+Posit15:    DW  &H1301  ; Position (4, 3)
+Posit16:    DW  &H1400  ; Position (5, 3)
 ;Posit17
-Posit18:    DW  &B0000000000110101  ; Position (1, 4) --> 0, 0, 3, 5
-Posit19:    DW  &B0000000100110100  ; Position (2, 4) --> 0, 1, 3, 4
-Posit20:    DW  &B0000001000010011  ; Position (3, 4) --> 0, 2, 1, 3
-Posit21:    DW  &B0000001000010011  ; Position (4, 4) --> 0, 3, 1, 2
-Posit22:    DW  &B0000010000010001  ; Position (5, 4) --> 0, 4, 1, 1
-Posit23:    DW  &B0000010100000000  ; Position (6, 4) --> 0, 5, 0, 0
+Posit18:    DW  &H0035  ; Position (1, 4)
+Posit19:    DW  &H0134  ; Position (2, 4)
+Posit20:    DW  &H0213  ; Position (3, 4)
+Posit21:    DW  &H0312  ; Position (4, 4)
+Posit22:    DW  &H0411  ; Position (5, 4)
+Posit23:    DW  &H0500  ; Position (6, 4)
 TempPosit:  DW  &H3300
 
 CurrFootprint: DW  0
-CurrRotat:  DW  0
+CurrRotat:  DW  0           ; 0 UP, 1 LEFT, 2 DOWN, 3 RIGHT
 CurrPosX:   DW  0
 CurrPosY:   DW  0
-GridCutoff: DW  00
+GridCutoff: DW  100
 Localize:
-    IN      Dist0
-    IN      Dist5
-    CALL    Wait1
+    IN      Dist0           ; Fix any reading errors
+    IN      Dist5           ; Fix any reading errors
+    CALL    Wait1           ; Wait a tiny bit
     
     IN      Dist0           ; After rotating 90, front reading
     SUB     GridCutoff      ; Subtract enough to ignore current square
     CALL    GetFeet         ; Convert to feet
     SHIFT   -1              ; Convert to grid
-    SHIFT   12              ; Make 4 MSBs in footprint
+    SHIFT   12              ; XXXX ---- ---- ----
     STORE   CurrFootprint   ; Store in footprint
     
     IN      Dist5           ; After rotating 90, back reading
     SUB     GridCutoff      ; Subtract enough to ignore current square
     CALL    GetFeet
     SHIFT   -1              ; Convert to grid
-    SHIFT   4
+    SHIFT   4               ; ---- ---- XXXX ----
     ADD     CurrFootprint
     STORE   CurrFootprint
     
@@ -283,7 +217,7 @@ Localize:
     SUB     GridCutoff      ; Subtract enough to ignore current square
     CALL    GetFeet
     SHIFT   -1              ; Convert to grid
-    SHIFT   8
+    SHIFT   8               ; ---- XXXX ---- ----
     ADD     CurrFootprint
     STORE   CurrFootprint
     
@@ -294,10 +228,13 @@ Localize:
     ADD     CurrFootprint
     STORE   CurrFootprint   ; Generate the current robot footprint
 
-    ;LOAD    TempPosit
-    ;STORE   CurrFootprint   ; Generate the current robot footprint
     OUT     SSEG1
-    CALL    ComparePosits       ; Find out where the robot currently is, which stores CurrX, CurrY, CurrRotat
+    CALL    ComparePosits       ; Find out where the robot currently is, which stores CurrPosX, CurrPosY, CurrRotat
+    LOAD    CurrPosX
+    JPOS    CompareRet
+    CALL    TryTurning
+    JUMP    Localize
+CompareRet:
     RETURN
 
 FirstFourBits:  DW  &HF000      ; The first 4 bits (used for rotations0
@@ -606,7 +543,7 @@ Read5:
 Read6:
     LOADI   6           ; Load 6 squares for output
     RETURN
-
+    
 Counter:        DW  3  
 FrontCutoff:    DW  1000
 TryTurning:             ; Tries to turn until it detects a valid orientation based on side distance
