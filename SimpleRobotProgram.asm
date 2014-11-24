@@ -13,11 +13,13 @@ Init:
     OUT     LVELCMD
     OUT     RVELCMD
     OUT     SONAREN     ; Disable sonar (optional)
+    OUT     SSEG1
+    OUT     SSEG2
     OUT     LCD
     
     CALL    SetupI2C    ; Configure the I2C to read the battery voltage
     CALL    BattCheck   ; Get battery voltage (and end if too low).
-    OUT     LCD         ; Display batt voltage on LCD
+    ;OUT     LCD         ; Display batt voltage on LCD
 
 WaitForSafety:          ; Wait for safety switch to be toggled
     IN      XIO         ; XIO contains SAFETY signal
@@ -52,22 +54,30 @@ Main:                   ; Program starts here.
     LOADI   &B00101101  ; Enable sides sensors (1 & 5) and front sensors (2 & 3)
     OUT     SONAREN
     
-    CALL    ReadInput
-    JUMP    Forever     ; Just testing for now, quit when done
-    LOADI   0
-    OUT     SONAREN
+    ;CALL    TurnLeft90
+    
+    
+    
+    ;CALL    ReadInput
+    CALL    Localize
+    LOAD    CurrPosX
+    SHIFT   8
+    ADD     CurrPosY
+    OUT     SSEG2
+    OUT     RESETPOS
 DieHard:
     CALL    ReadSides   ; Just for some simple testing of readings
     CALL    IsValidReading
-    OUT     LCD
-    JUMP    DieHard
- 
-Die:                    ; Permadeath (and stops when program is complete)
+    ;OUT     LCD
     CALL    StopMotors
     LOADI   0
     OUT     SONAREN
     LOAD    DEAD         ; An indication that we are dead
-    OUT     SSEG2
+    ;IN      THETA
+    ;CALL    LimitDeg180
+    ;OUT     LCD
+    JUMP    DieHard
+
 Forever:
     ;CALL    ReadInput
     JUMP    Forever      ; Do this forever.
@@ -76,12 +86,147 @@ DEAD: DW    &HDEAD
 ;***************************************************************
 ;* Subroutines
 ;***************************************************************
+XDIST:  DW  500
+MoveForward:
+    OUT     RESETPOS
+    LOADI   250
+    ;STORE   LimitHigh
+MoveFwdLoop:
+    LOADI	300
+    CALL    MoveMotorsAC
+    IN		XPOS
+    SUB		XDIST ;what to subtract if we want to move Y?
+    CALL    LimitRoutine
+    JNEG	MoveForward
+    OUT 	RESETPOS
+    CALL    StopMotors
+    RETURN
+
+LimitHigh:  DW  100
+LimitLow:   DW  70
+LimitValue: DW  0
+LimitRoutine:
+    STORE   LimitValue
+    JPOS    LimitHigher
+    CALL    OppositeSign
+    CALL    LimitRoutine
+    CALL    OppositeSign
+    RETURN
+LimitHigher:
+    SUB     LimitHigh
+    JPOS    RetHighCutoff
+    LOAD    LimitValue
+    SUB     LimitLow
+    JNEG    RetLowCutoff
+    LOAD    LimitValue
+    RETURN
+    
+RetHighCutoff:
+    LOAD    LimitHigh
+    RETURN
+RetLowCutoff:
+    LOAD    LimitLow
+    RETURN
+    
+
+TurnLeft90:
+    OUT     RESETPOS
+    ;LOADI   -100
+    ;CALL    TurnMotorsAC
+TurnLeftLoop:
+    IN      THETA
+    CALL    LimitDeg180
+    ADDI    -91
+    SHIFT   2
+    CALL    LimitRoutine
+    CALL    TurnMotorsAC
+	IN      THETA
+    CALL    LimitDeg180
+	ADDI    -91
+	JNEG    TurnLeftLoop
+    CALL    BrakeMotors
+	OUT     RESETPOS
+	RETURN
+    
+TurnRight90:
+    LOADI   -100
+    CALL    TurnMotorsAC
+TurnRightLoop:
+    CALL    UpdateMotors
+	IN      THETA
+	ADDI    100
+	JNEG    TurnRightLoop
+    CALL    StopMotors
+	OUT     RESETPOS
+	RETURN
+
+CTimer_ISR:  ; Timer interrupt
+; The timer interrupt will be used to turn the robot,
+; correcting for turn rate, etc., at 20Hz.
+	LOAD   TCount
+	ADDI   1
+	STORE  TCount
+	
+	IN     THETA       ; get current angle
+	STORE  NowTheta    ; save for later use
+	SUB    DesTheta    ; subtract desired angle
+	CALL   Mod360      ; remove negative numbers
+	ADDI   -180        ; test which semicircle error is in
+	JPOS   NeedLeft    ; >180 means need left turn
+	JUMP   NeedRight   ; otherwise, need right turn
+NeedLeft:
+	LOAD   DesTheta
+	SUB    NowTheta    ; get the turn error
+	CALL   Mod360      ; fix errors around 0
+	SUB    DeadZone
+	JNEG   NoTurn      ; stop moving if close
+	ADD    DeadZone
+	ADDI   -100        ; check if >100
+	JNEG   TurnLeft
+	LOADI  0        ; remove excess
+TurnLeft:
+	ADDI   100         ; replace the 100 from before
+	SHIFT  2           ; multiply by 4
+	OUT    RVELCMD     ; set right wheel forward
+	XOR    NegOne
+	ADDI   1           ; negate number
+	OUT    LVELCMD     ; set left wheel backwards
+	RETI               ; exit ISR
+NeedRight:
+	LOAD   NowTheta
+	SUB    DesTheta    ; get the turn error
+	CALL   Mod360      ; fix errors around 0
+	SUB    DeadZone
+	JNEG   NoTurn      ; stop moving if close
+	ADD    DeadZone
+	ADDI   -100        ; check if >100
+	JNEG   TurnRight
+	LOADI  0        ; remove excess
+TurnRight:
+	ADDI   100         ; replace the 100 from before
+	SHIFT  2           ; multiply by 4
+	OUT    LVELCMD     ; set left wheel forward
+	XOR    NegOne
+	ADDI   1           ; negate number
+	OUT    RVELCMD     ; set left wheel backwards
+	RETI               ; exit ISR
+NoTurn:
+	LOADI  0
+	OUT    LVELCMD
+	OUT    RVELCMD
+	RETI
+	
+NowTheta:   DW 0
+DeadZone:   DW 3
+TCount:     DW 0
+DesTheta:   DW 0
+
 
 ;   DO NOT CHANGE THESE
 ;   EVER
 ;   OR I WILL HUNT YOU DOWN
 ;Posit#           |UP||LF||DN||RT|  ; Position (X, Y) --> Up Lf Dn Rt
-Posit0:     DW  &B0011000000000011  ; Position (1, 1) --> 3, 0, 0, 3
+Posit0:     DW  &H3003  ; Position (1, 1) --> 3, 0, 0, 3
 Posit1:     DW  &B0011000100000010  ; Position (2, 1) --> 3, 1, 0, 2
 Posit2:     DW  &B0001001000000001  ; Position (3, 1) --> 1, 2, 0, 1
 Posit3:     DW  &B0001001100000000  ; Position (4, 1) --> 1, 3, 0, 0
@@ -105,34 +250,39 @@ Posit20:    DW  &B0000001000010011  ; Position (3, 4) --> 0, 2, 1, 3
 Posit21:    DW  &B0000001000010011  ; Position (4, 4) --> 0, 3, 1, 2
 Posit22:    DW  &B0000010000010001  ; Position (5, 4) --> 0, 4, 1, 1
 Posit23:    DW  &B0000010100000000  ; Position (6, 4) --> 0, 5, 0, 0
+TempPosit:  DW  &H3300
 
 CurrFootprint: DW  0
 CurrRotat:  DW  0
 CurrPosX:   DW  0
 CurrPosY:   DW  0
-GridCutoff: DW  100
+GridCutoff: DW  00
 Localize:
+    IN      Dist0
+    IN      Dist5
+    CALL    Wait1
+    
     IN      Dist0           ; After rotating 90, front reading
     SUB     GridCutoff      ; Subtract enough to ignore current square
     CALL    GetFeet         ; Convert to feet
-    SHIFT   -2              ; Convert to grid
+    SHIFT   -1              ; Convert to grid
     SHIFT   12              ; Make 4 MSBs in footprint
     STORE   CurrFootprint   ; Store in footprint
     
     IN      Dist5           ; After rotating 90, back reading
     SUB     GridCutoff      ; Subtract enough to ignore current square
     CALL    GetFeet
-    SHIFT   -2              ; Convert to grid
+    SHIFT   -1              ; Convert to grid
     SHIFT   4
     ADD     CurrFootprint
     STORE   CurrFootprint
     
-    ;CALL    Turn90Left      ; Turn 90 degrees to the left
+    CALL    TurnLeft90      ; Turn 90 degrees to the left
     
     IN      Dist0           ; Left reading
     SUB     GridCutoff      ; Subtract enough to ignore current square
     CALL    GetFeet
-    SHIFT   -2              ; Convert to grid
+    SHIFT   -1              ; Convert to grid
     SHIFT   8
     ADD     CurrFootprint
     STORE   CurrFootprint
@@ -140,10 +290,13 @@ Localize:
     IN      Dist5           ; Right reading
     SUB     GridCutoff      ; Subtract enough to ignore current square
     CALL    GetFeet
-    SHIFT   -2              ; Convert to grid
+    SHIFT   -1              ; Convert to grid
     ADD     CurrFootprint
     STORE   CurrFootprint   ; Generate the current robot footprint
 
+    ;LOAD    TempPosit
+    ;STORE   CurrFootprint   ; Generate the current robot footprint
+    OUT     SSEG1
     CALL    ComparePosits       ; Find out where the robot currently is, which stores CurrX, CurrY, CurrRotat
     RETURN
 
@@ -151,6 +304,8 @@ FirstFourBits:  DW  &HF000      ; The first 4 bits (used for rotations0
 TempHead:       DW  0           ; The temp variable for the robot footprint
 TempRot:        DW  -1          ; The temp variable for the robot rotation
 ComparePosits:
+    LOADI   -1
+    STORE   TempRot
     LOAD    CurrFootprint       ; Take the current footprint
     STORE   TempHead            ; Copy it for safekeeping
 CompareLoop:
@@ -310,13 +465,19 @@ Next23:                     ; Position 23
     SUB     TempHead
     JZERO   DoneComparePosits
 
-    LOAD    TempHead
-    ADDI    -3
-    JNEG    NextContinue    ; Has it fewer more than 4 times?
+    
+    
+    
+    
+    LOAD    TempRot
+    ADDI    -4
+    JNEG    NextContinue    ; Has it more more than 4 times?
+    LOAD    TempRot
+    ;OUT     SSEG1
     LOADI   -1              ; If so, set coordinates to (-1, -1)
-    STORE   CurrX
-    STORE   CurrY
-    JUMP    DieHard         ; Die
+    STORE   CurrPosX
+    STORE   CurrPosY
+    RETURN        ; Die
 NextContinue:
     LOAD    TempHead        ; Load the heading
     AND     FirstFourBits   ; Get the 4 MSBs
@@ -326,6 +487,7 @@ NextContinue:
     SHIFT   4               ; Shift them to the left (4 LSBs are now 0)
     ADD     Temp            ; Add the 4 original MSBs
     STORE   TempHead        ; Store it
+    OUT     LCD
     JUMP    CompareLoop     ; Keep on chuggin'
 DoneComparePosits:
     LOAD    TempRot         ; Found a match! Update the rotation
@@ -347,10 +509,8 @@ Dest3X:     DW  0           ; Destination 3 X coordinate
 Dest3Y:     DW  0           ; Destination 3 Y coordinate
 ReadInput:              ; Reads input switches, stores the (X, Y) coordinates of each
     IN      SWITCHES
-    OUT     LCD
     AND     First5Bits  ; Look only at 1st 5 bits
     STORE   Dest1       ; Destination 1
-    OUT     SSEG2
     IN      SWITCHES
     SHIFT   -5          ; Bring to front, chopping off 1st 5 bits (destination 1)
     AND     First5Bits  ; Look only at new 1st 5 bits
@@ -384,7 +544,7 @@ ReadInput:              ; Reads input switches, stores the (X, Y) coordinates of
     LOAD    Dest1X      ; Displaying:  Get X coordinate
     SHIFT   8           ; Shift it to left 2 digits of SSEG/LCD
     ADD     Dest1Y      ; Add Y coordinate (right 2 digits)
-    OUT     SSEG1       ; Display
+    ;OUT     SSEG2       ; Display
     RETURN
 
 ReadX:                  ; Gets the X coordinate from the position #
@@ -436,19 +596,15 @@ IsValidReading:         ; Checks if correctly seeing a distance of 8, 10, or 12 
     ADDI    -2
     JZERO   Read6       ; Sees 6 squares on either side
     LOADI   -1          ; Bad reading
-    OUT     LCD         ; Out to SSEG1 for testing
     RETURN
 Read4:
     LOADI   4           ; Load 4 squares for output
-    OUT     LCD         ; Out to SSEG1 for testing
     RETURN
 Read5:
     LOADI   5           ; Load 5 squares for output
-    OUT     LCD         ; Out to SSEG1 for testing
     RETURN
 Read6:
     LOADI   6           ; Load 6 squares for output
-    OUT     LCD         ; Out to SSEG1 for testing
     RETURN
 
 Counter:        DW  3  
@@ -473,7 +629,6 @@ TurnLoop:               ; Turns the robot until it reads a good distance (going 
     CALL    IsValidReading
     JNEG    TurnLoop
     IN      DIST3
-    OUT     SSEG2       ; For testing - shows distance on Sensor 3
     SUB     FrontCutoff
     JPOS    TurnLoop
     CALL    BrakeMotors
@@ -527,7 +682,7 @@ BrakeMotors:            ; Provides a 'braking' system by inverting the velocitie
     SUB     VelR
     STORE   VelR
     CALL    UpdateMotors
-    LOADI   4
+    LOADI   2
     CALL    WaitAC
     LOADI   0
     STORE   VelR
@@ -543,14 +698,19 @@ UpdateMotors:           ; Reassigns the motor velocities to the motor controller
     OUT     RVELCMD
     RETURN
     
-Mod360:                 ; Mods the input by 360
-    JNEG    Add360
-Sub360:
-    SUB     DEG360
-    JPOS    Sub360
-Add360:
-    ADD     DEG360
-    JNEG    Add360
+Mod360:
+	JNEG    M360N       ; loop exit condition
+	ADDI    -360        ; start removing 360 at a time
+	JUMP    Mod360      ; keep going until negative
+M360N:
+	ADDI    360         ; get back to positive
+	JNEG    M360N       ; (keep adding 360 until non-negative)
+	RETURN
+    
+LimitDeg180:
+    ADDI    180
+    CALL    Mod360
+    ADDI    -180
     RETURN
 
 AbsArgs:    DW  0
@@ -587,7 +747,7 @@ DeadBatt:               ; Check for low battery, halt if too low
     CALL    GetBattLvl  ; get the battery level
     OUT     SSEG1       ; display it everywhere
     OUT     SSEG2
-    OUT     LCD
+    ;OUT     LCD
     LOADI   0
     ADDI    -1          ; 0xFFFF
     OUT     LEDS        ; all LEDs on
@@ -685,6 +845,7 @@ Temp:       DW  0   ; Temporary Variable
 Temp2:      DW  0   ; Temporary Variable 2
 WaitTime:   DW  0   ; Input to Wait
 OneFtDist:  DW  304 ; roughly 304.8 mm per ft (but ticks are ~1.05 mm, so about 290.3 ticks)
+NegOne:     DW  &HFFFF ; All 1s
 
 ;***************************************************************
 ;* Constants
