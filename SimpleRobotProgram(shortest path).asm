@@ -1,18 +1,23 @@
+
 ; SimpleRobotProgram.asm
 ; Created by Kevin Johnson
 ; (no copyright applied; edit freely, no attribution necessary)
 ; This program does basic initialization of the DE2Bot
 ; and provides an example of some peripherals.
-
+ 
 ; Section labels are for clarity only.
-
-
+ 
+ 
+ 
 ORG        &H000       ;Begin program at x000
 ;***************************************************************
 ;* Initialization
 ;***************************************************************
 
-	
+;set the starting point
+	LOAD	Zero
+	STORE	PointS
+
 GetPoints:	;I want to write a program to display the hex value of switches on the LEDS
 	
 	IN		SWITCHES
@@ -31,214 +36,64 @@ GetPoints:	;I want to write a program to display the hex value of switches on th
 	SHIFT	-10
 	STORE	Point3
 	OUT		SSEG1
-	LOAD	PointC
+	LOAD	PointS
 	OUT		LCD
 	
 	
 					; Wait for user to press PB3
 	IN     TIMER       ; We'll blink the LEDs above PB3
 	AND    Mask1
-	SHIFT  1           ; Both LEDG2 and LEDG3
+	SHIFT  5           ; Both LEDG2 and LEDG3
+	STORE  Temp        ; (overkill, but looks nice)
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	IN     XIO         ; XIO contains KEYs
+	AND    Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS   GetPoints ; not ready (KEYs are active-low, hence JPOS)
+	
+;=================================================================================
+
+	LOAD	PointS		;this will be the starting point
+	STORE	TempPoint
+	CALL	SetXY
+	LOAD	TempX
+	STORE	PointSX
+	LOAD	TempY
+	STORE	PointSY
+
+FoundStart:		;
+	LOAD	PointSX
+	SHIFT	12
+	STORE	Temp
+	LOAD	PointSY
+	SHIFT	8
+	ADD		TEMP
+	ADD		PointS
+	OUT		LCD
+	
+	; Wait for user to press PB3
+	IN     TIMER       ; We'll blink the LEDs above PB3
+	AND    Mask1
+	SHIFT  1           ; Both LEDG4 and LEDG5
 	STORE  Temp        ; (overkill, but looks nice)
 	SHIFT  1
 	OR     Temp
 	OUT    XLEDS
 	IN     XIO         ; XIO contains KEYs
 	AND    Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
-	JPOS   GetPoints ; not ready (KEYs are active-low, hence JPOS)
+	JPOS   FoundStart ; not ready (KEYs are active-low, hence JPOS)
 	
 ;=================================================================================
-	
-SetX1Y1: ;I want to set the X and Y coordinates respective to each point
-	;assume point1 is 0
-	LOAD	One
-	STORE	Point1X
-	STORE	Point1Y
-	;check if point1 is zero
+
 	LOAD	Point1
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 1
-	SUB		One
-	STORE	Temp
-	LOAD	Two
+	STORE	TempPoint
+	CALL	SetXY
+	LOAD	TempX
 	STORE	Point1X
-	Load	One
+	LOAD	TempY
 	STORE	Point1Y
-	;check if point1 is 1
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 2
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point1X
-	Load	One
-	STORE	Point1Y
-	;check if point1 is 2
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 3
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point1X
-	Load	One
-	STORE	Point1Y
-	;check if point1 is 3
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 4
-	SUB		One
-	STORE 	TEMP
-	LOAD	One
-	STORE	Point1X
-	Load	Two
-	STORE	Point1Y
-	;check if point1 is 4
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 5
-	SUB		One
-	STORE	Temp
-	LOAD	Two
-	STORE	Point1X
-	Load	Two
-	STORE	Point1Y
-	;check if point1 is 5
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 6
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point1X
-	Load	Two
-	STORE	Point1Y
-	;check if point1 is 6
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 7
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point1X
-	Load	Two
-	STORE	Point1Y
-	;check if point1 is 7
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 8
-	SUB		One
-	STORE 	TEMP
-	LOAD	One
-	STORE	Point1X
-	Load	Three
-	STORE	Point1Y
-	;check if point1 is 8
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 9
-	SUB		One
-	STORE	Temp
-	LOAD	Two
-	STORE	Point1X
-	Load	Three
-	STORE	Point1Y
-	;check if point1 is 9
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 10
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point1X
-	Load	Three
-	STORE	Point1Y
-	;check if point1 is 10
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 11
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point1X
-	Load	Three
-	STORE	Point1Y
-	;check if point1 is 11
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 12
-	SUB		One
-	STORE 	TEMP
-	LOAD	Five
-	STORE	Point1X
-	Load	Three
-	STORE	Point1Y
-	;check if point1 is 12
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 13
-	SUB		One
-	STORE	Temp
-	LOAD	One
-	STORE	Point1X
-	Load	Four
-	STORE	Point1Y
-	;check if point1 is 13
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 14
-	SUB		One
-	STORE 	TEMP
-	LOAD	Two
-	STORE	Point1X
-	Load	Four
-	STORE	Point1Y
-	;check if point1 is 14
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 15
-	SUB		One
-	STORE	Temp
-	LOAD	Three
-	STORE	Point1X
-	Load	Four
-	STORE	Point1Y
-	;check if point1 is 15
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 16
-	SUB		One
-	STORE 	TEMP
-	LOAD	Four
-	STORE	Point1X
-	Load	Four
-	STORE	Point1Y
-	;check if point1 is 16
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc it is not 0, and assume it is 17
-	SUB		One
-	STORE	Temp
-	LOAD	Five
-	STORE	Point1X
-	Load	Four
-	STORE	Point1Y
-	;check if point1 is 17
-	LOAD	Temp
-	JZERO	Found1
-	;dec point1 bc its not 1, and assume it is 18
-	SUB		One
-	STORE 	TEMP
-	LOAD	Six
-	STORE	Point1X
-	Load	Four
-	STORE	Point1Y
-	;check if point1 is 18
-	LOAD	Temp
-	JZERO	Found1
-	
-		
+
 Found1:		;
 	LOAD	Point1X
 	SHIFT	12
@@ -263,194 +118,13 @@ Found1:		;
 	
 ;=================================================================================
 	
-SetX2Y2: ;I want to set the X and Y coordinates respective to each point
-	;assume point2 is 0
-	LOAD	One
-	STORE	Point2X
-	STORE	Point2Y
-	;check if point1 is zero
 	LOAD	Point2
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 1
-	SUB		One
-	STORE	Temp
-	LOAD	Two
+	STORE	TempPoint
+	CALL	SetXY
+	LOAD	TempX
 	STORE	Point2X
-	Load	One
+	LOAD	TempY
 	STORE	Point2Y
-	;check if point1 is 1
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 2
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point2X
-	Load	One
-	STORE	Point2Y
-	;check if point1 is 2
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 3
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point2X
-	Load	One
-	STORE	Point2Y
-	;check if point1 is 3
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 4
-	SUB		One
-	STORE 	TEMP
-	LOAD	One
-	STORE	Point2X
-	Load	Two
-	STORE	Point2Y
-	;check if point1 is 4
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 5
-	SUB		One
-	STORE	Temp
-	LOAD	Two
-	STORE	Point2X
-	Load	Two
-	STORE	Point2Y
-	;check if point1 is 5
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 6
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point2X
-	Load	Two
-	STORE	Point2Y
-	;check if point1 is 6
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 7
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point2X
-	Load	Two
-	STORE	Point2Y
-	;check if point1 is 7
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 8
-	SUB		One
-	STORE 	TEMP
-	LOAD	One
-	STORE	Point2X
-	Load	Three
-	STORE	Point2Y
-	;check if point1 is 8
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 9
-	SUB		One
-	STORE	Temp
-	LOAD	Two
-	STORE	Point2X
-	Load	Three
-	STORE	Point2Y
-	;check if point1 is 9
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 10
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point2X
-	Load	Three
-	STORE	Point2Y
-	;check if point1 is 10
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 11
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point2X
-	Load	Three
-	STORE	Point2Y
-	;check if point1 is 11
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 12
-	SUB		One
-	STORE 	TEMP
-	LOAD	Five
-	STORE	Point2X
-	Load	Three
-	STORE	Point2Y
-	;check if point1 is 12
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 13
-	SUB		One
-	STORE	Temp
-	LOAD	One
-	STORE	Point2X
-	Load	Four
-	STORE	Point2Y
-	;check if point1 is 13
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 14
-	SUB		One
-	STORE 	TEMP
-	LOAD	Two
-	STORE	Point2X
-	Load	Four
-	STORE	Point2Y
-	;check if point1 is 14
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 15
-	SUB		One
-	STORE	Temp
-	LOAD	Three
-	STORE	Point2X
-	Load	Four
-	STORE	Point2Y
-	;check if point1 is 15
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 16
-	SUB		One
-	STORE 	TEMP
-	LOAD	Four
-	STORE	Point2X
-	Load	Four
-	STORE	Point2Y
-	;check if point1 is 16
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc it is not 0, and assume it is 17
-	SUB		One
-	STORE	Temp
-	LOAD	Five
-	STORE	Point2X
-	Load	Four
-	STORE	Point2Y
-	;check if point1 is 17
-	LOAD	Temp
-	JZERO	Found2
-	;dec point1 bc its not 1, and assume it is 18
-	SUB		One
-	STORE 	TEMP
-	LOAD	Six
-	STORE	Point2X
-	Load	Four
-	STORE	Point2Y
-	;check if point1 is 18
-	LOAD	Temp
-	JZERO	Found2
 
 Found2:	
 	LOAD	Point2X
@@ -476,194 +150,13 @@ Found2:
 	
 ;=================================================================================
 	
-SetX3Y3: ;I want to set the X and Y coordinates respective to each point
-	;assume point1 is 0
-	LOAD	One
-	STORE	Point3X
-	STORE	Point3Y
-	;check if point1 is zero
 	LOAD	Point3
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 1
-	SUB		One
-	STORE	Temp
-	LOAD	Two
+	STORE	TempPoint
+	CALL	SetXY
+	LOAD	TempX
 	STORE	Point3X
-	Load	One
+	LOAD	TempY
 	STORE	Point3Y
-	;check if point1 is 1
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 2
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point3X
-	Load	One
-	STORE	Point3Y
-	;check if point1 is 2
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 3
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point3X
-	Load	One
-	STORE	Point3Y
-	;check if point1 is 3
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 4
-	SUB		One
-	STORE 	TEMP
-	LOAD	One
-	STORE	Point3X
-	Load	Two
-	STORE	Point3Y
-	;check if point1 is 4
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 5
-	SUB		One
-	STORE	Temp
-	LOAD	Two
-	STORE	Point3X
-	Load	Two
-	STORE	Point3Y
-	;check if point1 is 5
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 6
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point3X
-	Load	Two
-	STORE	Point3Y
-	;check if point1 is 6
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 7
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point3X
-	Load	Two
-	STORE	Point3Y
-	;check if point1 is 7
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 8
-	SUB		One
-	STORE 	TEMP
-	LOAD	One
-	STORE	Point3X
-	Load	Three
-	STORE	Point3Y
-	;check if point1 is 8
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 9
-	SUB		One
-	STORE	Temp
-	LOAD	Two
-	STORE	Point3X
-	Load	Three
-	STORE	Point3Y
-	;check if point1 is 9
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 10
-	SUB		One
-	STORE 	TEMP
-	LOAD	Three
-	STORE	Point3X
-	Load	Three
-	STORE	Point3Y
-	;check if point1 is 10
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 11
-	SUB		One
-	STORE	Temp
-	LOAD	Four
-	STORE	Point3X
-	Load	Three
-	STORE	Point3Y
-	;check if point1 is 11
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 12
-	SUB		One
-	STORE 	TEMP
-	LOAD	Five
-	STORE	Point3X
-	Load	Three
-	STORE	Point3Y
-	;check if point1 is 12
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 13
-	SUB		One
-	STORE	Temp
-	LOAD	One
-	STORE	Point3X
-	Load	Four
-	STORE	Point3Y
-	;check if point1 is 13
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 14
-	SUB		One
-	STORE 	TEMP
-	LOAD	Two
-	STORE	Point3X
-	Load	Four
-	STORE	Point3Y
-	;check if point1 is 14
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 15
-	SUB		One
-	STORE	Temp
-	LOAD	Three
-	STORE	Point3X
-	Load	Four
-	STORE	Point3Y
-	;check if point1 is 15
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 16
-	SUB		One
-	STORE 	TEMP
-	LOAD	Four
-	STORE	Point3X
-	Load	Four
-	STORE	Point3Y
-	;check if point1 is 16
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc it is not 0, and assume it is 17
-	SUB		One
-	STORE	Temp
-	LOAD	Five
-	STORE	Point3X
-	Load	Four
-	STORE	Point3Y
-	;check if point1 is 17
-	LOAD	Temp
-	JZERO	Found3
-	;dec point1 bc its not 1, and assume it is 18
-	SUB		One
-	STORE 	TEMP
-	LOAD	Six
-	STORE	Point3X
-	Load	Four
-	STORE	Point3Y
-	;check if point1 is 18
-	LOAD	Temp
-	JZERO	Found3
 	
 Found3:
 	LOAD	Point3X
@@ -675,7 +168,7 @@ Found3:
 	ADD		Point3
 	OUT		LCD
 	
-	; Wait for user to press PB3
+	; Wait for user to press PB1
 	IN     TIMER       ; We'll blink the LEDs above PB3
 	AND    Mask1
 	SHIFT  1           ; Both LEDG2 and LEDG3
@@ -685,10 +178,492 @@ Found3:
 	OUT    XLEDS
 	IN     XIO         ; XIO contains KEYs
 	AND    Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
-	JPOS   SetX3Y3 ; not ready (KEYs are active-low, hence JPOS)
+	JPOS   Found3 ; not ready (KEYs are active-low, hence JPOS)
 
 ;=================================================================================
 
+;This will calculate the distances from each of the 6 possible paths
+
+;calc SPP1
+	LOAD	PointSX
+	STORE	X1
+	STORE	XC
+	LOAD	PointSY
+	STORE	Y1
+	STORE	YC
+	LOAD	Point1X
+	STORE	X2
+	LOAD	Point1Y
+	STORE	Y2
+	LOAD	Y2
+	SUB		Y1
+	STORE	DeltaY
+
+	CALL	CalcDist	
+
+FoundSPP1:
+	LOAD	Dist
+	STORE	SPP1
+	OUT		LCD
+
+	; Wait for user to press PB2
+	IN		TIMER       ; We'll blink the LEDs above PB3
+	AND		Mask1
+	SHIFT	3           ; Both LEDG6 and LEDG7
+	STORE	Temp        ; (overkill, but looks nice)
+	SHIFT	1
+	OR		Temp
+	OUT		XLEDS
+	IN		XIO         ; XIO contains KEYs
+	AND		Mask1       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS 	FoundSPP1 ; not ready (KEYs are active-low, hence JPOS)
+	
+;calc SPP2
+	LOAD	PointSX
+	STORE	X1
+	STORE	XC
+	LOAD	PointSY
+	STORE	Y1
+	STORE	YC
+	LOAD	Point2X
+	STORE	X2
+	LOAD	Point2Y
+	STORE	Y2
+	LOAD	Y2
+	SUB		Y1
+	STORE	DeltaY
+
+	CALL	CalcDist	
+
+FoundSPP2:
+	LOAD	Dist
+	STORE	SPP2
+	OUT		LCD
+
+	; Wait for user to press PB3
+	IN     TIMER       ; We'll blink the LEDs above PB3
+	AND    Mask1
+	SHIFT  5           ; Both LEDG6 and LEDG7
+	STORE  Temp        ; (overkill, but looks nice)
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	IN     XIO         ; XIO contains KEYs
+	AND    Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS   FoundSPP2 ; not ready (KEYs are active-low, hence JPOS)
+
+;calc SPP3
+	LOAD	PointSX
+	STORE	X1
+	STORE	XC
+	LOAD	PointSY
+	STORE	Y1
+	STORE	YC
+	LOAD	Point3X
+	STORE	X2
+	LOAD	Point3Y
+	STORE	Y2
+	LOAD	Y2
+	SUB		Y1
+	STORE	DeltaY
+
+	CALL	CalcDist	
+
+FoundSPP3:
+	LOAD	Dist
+	STORE	SPP3
+	OUT		LCD
+
+	; Wait for user to press PB1
+	IN     TIMER       ; We'll blink the LEDs above PB3
+	AND    Mask1
+	SHIFT  1           ; Both LEDG2 and LEDG3
+	STORE  Temp        ; (overkill, but looks nice)
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	IN     XIO         ; XIO contains KEYs
+	AND    Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS   FoundSPP3 ; not ready (KEYs are active-low, hence JPOS)
+
+;calc P1P2
+	LOAD	Point1X
+	STORE	X1
+	STORE	XC
+	LOAD	Point1Y
+	STORE	Y1
+	STORE	YC
+	LOAD	Point2X
+	STORE	X2
+	LOAD	Point2Y
+	STORE	Y2
+	LOAD	Y2
+	SUB		Y1
+	STORE	DeltaY
+
+	CALL	CalcDist	
+
+FoundP1P2:
+	LOAD	Dist
+	STORE	P1P2
+	OUT		LCD
+
+	; Wait for user to press PB2
+	IN		TIMER       ; We'll blink the LEDs above PB3
+	AND		Mask1
+	SHIFT	3           ; Both LEDG6 and LEDG7
+	STORE	Temp        ; (overkill, but looks nice)
+	SHIFT	1
+	OR		Temp
+	OUT		XLEDS
+	IN		XIO         ; XIO contains KEYs
+	AND		Mask1       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS 	FoundP1P2 ; not ready (KEYs are active-low, hence JPOS)
+	
+;calc P1P3
+	LOAD	Point1X
+	STORE	X1
+	STORE	XC
+	LOAD	Point1Y
+	STORE	Y1
+	STORE	YC
+	LOAD	Point3X
+	STORE	X2
+	LOAD	Point3Y
+	STORE	Y2
+	LOAD	Y2
+	SUB		Y1
+	STORE	DeltaY
+
+	CALL	CalcDist	
+
+FoundP1P3:
+	LOAD	Dist
+	STORE	P1P3
+	OUT		LCD
+
+	; Wait for user to press PB3
+	IN     TIMER       ; We'll blink the LEDs above PB3
+	AND    Mask1
+	SHIFT  5           ; Both LEDG6 and LEDG7
+	STORE  Temp        ; (overkill, but looks nice)
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	IN     XIO         ; XIO contains KEYs
+	AND    Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS   FoundP1P3 ; not ready (KEYs are active-low, hence JPOS)
+
+;calc P2P3
+	LOAD	Point2X
+	STORE	X1
+	STORE	XC
+	LOAD	Point2Y
+	STORE	Y1
+	STORE	YC
+	LOAD	Point3X
+	STORE	X2
+	LOAD	Point3Y
+	STORE	Y2
+	LOAD	Y2
+	SUB		Y1
+	STORE	DeltaY
+
+	CALL	CalcDist	
+
+FoundP2P3:
+	LOAD	Dist
+	STORE	P2P3
+	OUT		LCD
+
+	; Wait for user to press PB1
+	IN     TIMER       ; We'll blink the LEDs above PB3
+	AND    Mask1
+	SHIFT  1           ; Both LEDG2 and LEDG3
+	STORE  Temp        ; (overkill, but looks nice)
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	IN     XIO         ; XIO contains KEYs
+	AND    Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS   FoundP2P3 ; not ready (KEYs are active-low, hence JPOS)
+
+;=====================================================================================
+
+; set the distances for the unique 6 paths
+SetDist:
+	LOAD	SPP1
+	ADD		P1P2
+	ADD		P2P3
+	STORE	SPP1P2P3
+	
+	LOAD	SPP1
+	ADD		P1P3
+	ADD		P2P3	;P3P2
+	STORE	SPP1P3P2
+	
+	LOAD	SPP2
+	ADD		P1P2	;P2P1
+	ADD		P1P3
+	STORE	SPP2P1P3
+	
+	LOAD	SPP2
+	ADD		P2P3
+	ADD		P1P3	;P3P1
+	STORE	SPP2P3P1
+	
+	LOAD	SPP3
+	ADD		P1P3	;P3P1
+	ADD		P1P2
+	STORE	SPP3P1P2
+	
+	LOAD	SPP3
+	ADD		P2P3	;P3P2
+	ADD		P1P2	;P2P1
+	STORE	SPP3P2P1
+	
+SetPaths:
+	LOAD	SPP3P2P1
+	OUT		LCD
+		
+	; Wait for user to press PB2
+	IN     TIMER       ; We'll blink the LEDs above PB3
+	AND    Mask1
+	SHIFT  3           ; Both LEDG2 and LEDG3
+	STORE  Temp        ; (overkill, but looks nice)
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	IN     XIO         ; XIO contains KEYs
+	AND    Mask1       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS   SetPaths ; not ready (KEYs are active-low, hence JPOS)
+	
+;====================================================================================
+	
+;This calculates the shortests path given 6 paths
+	
+CheckP1:	;This checks to see if Path 1 is the shortest path
+	LOAD	SPP1P2P3
+	SUB		SPP1P3P2
+	JPOS	CheckP2
+	
+	LOAD	SPP1P2P3
+	SUB		SPP2P1P3
+	JPOS	CheckP3
+	
+	LOAD	SPP1P2P3
+	SUB		SPP2P3P1
+	JPOS	CheckP4
+	
+	LOAD	SPP1P2P3
+	SUB		SPP3P1P2
+	JPOS	CheckP5
+	
+	LOAD	SPP1P2P3
+	SUB		SPP3P2P1
+	JPOS	CheckP6
+	
+	LOAD	One
+	STORE	ShortPath
+	JPOS	FoundShort
+	
+CheckP2:
+	LOAD	SPP1P3P2
+	SUB		SPP2P1P3
+	JPOS	CheckP3
+	
+	LOAD	SPP1P3P2
+	SUB		SPP2P3P1
+	JPOS	CheckP4
+	
+	LOAD	SPP1P3P2
+	SUB		SPP3P1P2
+	JPOS	CheckP5
+	
+	LOAD	SPP1P3P2
+	SUB		SPP3P2P1
+	JPOS	CheckP6
+	
+	LOAD	Two
+	STORE	ShortPath
+	JPOS	FoundShort
+
+CheckP3:
+	LOAD	SPP2P1P3
+	SUB		SPP2P3P1
+	JPOS	CheckP4
+	
+	LOAD	SPP2P1P3
+	SUB		SPP3P1P2
+	JPOS	CheckP5
+	
+	LOAD	SPP2P1P3
+	SUB		SPP3P2P1
+	JPOS	CheckP6
+	
+	LOAD	Three
+	STORE	ShortPath
+	JPOS	FoundShort
+
+CheckP4:
+	LOAD	SPP2P3P1
+	SUB		SPP3P1P2
+	JPOS	CheckP5
+	
+	LOAD	SPP2P3P1
+	SUB		SPP3P2P1
+	JPOS	CheckP6
+	
+	LOAD	Four
+	STORE	ShortPath
+	JPOS	FoundShort
+
+CheckP5:
+	LOAD	SPP3P1P2
+	SUB		SPP3P2P1
+	JPOS	CheckP6
+	
+	LOAD	Five
+	STORE	ShortPath
+	JPOS	FoundShort
+
+CheckP6:
+	LOAD	Six
+	STORE	ShortPath
+	JPOS	FoundShort
+	
+	
+ FoundShort:
+ 	LOAD	ShortPath
+ 	OUT		LCD
+ 	
+ 	
+	; Wait for user to press PB3
+	IN		TIMER       ; We'll blink the LEDs above PB3
+	AND		Mask1
+	SHIFT	5           ; Both LEDG6 and LEDG7
+	STORE	Temp        ; (overkill, but looks nice)
+	SHIFT	1
+	OR		Temp
+	OUT		XLEDS
+	IN		XIO         ; XIO contains KEYs
+	AND		Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS 	FoundShort ; not ready (KEYs are active-low, hence JPOS)
+
+	
+;=================================================================================
+
+SetPoints: 
+	LOAD	ShortPath
+	STORE	Temp
+	
+	;ShortPath = 1
+	LOAD	Point1
+	STORE	P1
+	LOAD	Point2
+	STORE	P2
+	LOAD	Point3
+	STORE	P3
+	LOAD	Temp
+	SUB		One
+	STORE	Temp
+	JZERO	PointsSet
+	
+	;ShortPath = 2
+	LOAD	Point1
+	STORE	P1
+	LOAD	Point3
+	STORE	P2
+	LOAD	Point2
+	STORE	P3
+	LOAD	Temp
+	SUB		One
+	STORE	Temp
+	JZERO	PointsSet
+	
+	;ShortPath = 3
+	LOAD	Point2
+	STORE	P1
+	LOAD	Point1
+	STORE	P2
+	LOAD	Point3
+	STORE	P3
+	LOAD	Temp
+	SUB		One
+	STORE	Temp
+	JZERO	PointsSet
+	
+	;ShortPath = 4
+	LOAD	Point2
+	STORE	P1
+	LOAD	Point3
+	STORE	P2
+	LOAD	Point1
+	STORE	P3
+	LOAD	Temp
+	SUB		One
+	STORE	Temp
+	JZERO	PointsSet
+	
+	;ShortPath = 5
+	LOAD	Point3
+	STORE	P1
+	LOAD	Point1
+	STORE	P2
+	LOAD	Point2
+	STORE	P3
+	LOAD	Temp
+	SUB		One
+	STORE	Temp
+	JZERO	PointsSet
+	
+	;ShortPath = 6
+	LOAD	Point3
+	STORE	P1
+	LOAD	Point2
+	STORE	P2
+	LOAD	Point1
+	STORE	P3
+	LOAD	Temp
+	SUB		One
+	STORE	Temp
+	JZERO	PointsSet
+	
+
+PointsSet:
+	LOAD	Zero
+	STORE	Temp
+	LOAD	P3
+	SHIFT	8
+	STORE	Temp
+	LOAD	P2
+	ADD		Temp
+	OUT		SSEG1
+	
+	LOAD	Zero
+	STORE	Temp
+	LOAD	P1
+	SHIFT	8
+	STORE	Temp
+	LOAD	PointS
+	ADD		Temp
+	OUT		SSEG2
+
+		; Wait for user to press PB1
+	IN		TIMER       ; We'll blink the LEDs above PB3
+	AND		Mask1
+	SHIFT	1           ; Both LEDG6 and LEDG7
+	STORE	Temp        ; (overkill, but looks nice)
+	SHIFT	1
+	OR		Temp
+	OUT		XLEDS
+	IN		XIO         ; XIO contains KEYs
+	AND		Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
+	JPOS 	PointsSet ; not ready (KEYs are active-low, hence JPOS)
+;=================================================================================
+;	At this point, the shortest path has been found and displayed on the SSEGs 
+;	from (right to left) showing the starting point > P1 > P2 > P3
+;=================================================================================
 Init:
 	; Always a good idea to make sure the robot
 	; stops in the event of a reset.
@@ -835,6 +810,308 @@ DEAD: DW &HDEAD
 ;* Subroutines
 ;***************************************************************
 
+
+SetXY: ;I want to set the X and Y coordinates respective to each point
+	;assume point1 is 0
+	LOAD	One
+	STORE	TempX
+	STORE	TempY
+	;check if point1 is zero
+	LOAD	TempPoint
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 1
+	SUB		One
+	STORE	Temp
+	LOAD	Two
+	STORE	TempX
+	Load	One
+	STORE	TempY
+	;check if point1 is 1
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 2
+	SUB		One
+	STORE 	TEMP
+	LOAD	Three
+	STORE	TempX
+	Load	One
+	STORE	TempY
+	;check if point1 is 2
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 3
+	SUB		One
+	STORE	Temp
+	LOAD	Four
+	STORE	TempX
+	Load	One
+	STORE	TempY
+	;check if point1 is 3
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 4
+	SUB		One
+	STORE 	TEMP
+	LOAD	One
+	STORE	TempX
+	Load	Two
+	STORE	TempY
+	;check if point1 is 4
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 5
+	SUB		One
+	STORE	Temp
+	LOAD	Two
+	STORE	TempX
+	Load	Two
+	STORE	TempY
+	;check if point1 is 5
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 6
+	SUB		One
+	STORE 	TEMP
+	LOAD	Three
+	STORE	TempX
+	Load	Two
+	STORE	TempY
+	;check if point1 is 6
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 7
+	SUB		One
+	STORE	Temp
+	LOAD	Four
+	STORE	TempX
+	Load	Two
+	STORE	TempY
+	;check if point1 is 7
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 8
+	SUB		One
+	STORE 	TEMP
+	LOAD	One
+	STORE	TempX
+	Load	Three
+	STORE	TempY
+	;check if point1 is 8
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 9
+	SUB		One
+	STORE	Temp
+	LOAD	Two
+	STORE	TempX
+	Load	Three
+	STORE	TempY
+	;check if point1 is 9
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 10
+	SUB		One
+	STORE 	TEMP
+	LOAD	Three
+	STORE	TempX
+	Load	Three
+	STORE	TempY
+	;check if point1 is 10
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 11
+	SUB		One
+	STORE	Temp
+	LOAD	Four
+	STORE	TempX
+	Load	Three
+	STORE	TempY
+	;check if point1 is 11
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 12
+	SUB		One
+	STORE 	TEMP
+	LOAD	Five
+	STORE	TempX
+	Load	Three
+	STORE	TempY
+	;check if point1 is 12
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 13
+	SUB		One
+	STORE	Temp
+	LOAD	One
+	STORE	TempX
+	Load	Four
+	STORE	TempY
+	;check if point1 is 13
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 14
+	SUB		One
+	STORE 	TEMP
+	LOAD	Two
+	STORE	TempX
+	Load	Four
+	STORE	TempY
+	;check if point1 is 14
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 15
+	SUB		One
+	STORE	Temp
+	LOAD	Three
+	STORE	TempX
+	Load	Four
+	STORE	TempY
+	;check if point1 is 15
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 16
+	SUB		One
+	STORE 	TEMP
+	LOAD	Four
+	STORE	TempX
+	Load	Four
+	STORE	TempY
+	;check if point1 is 16
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc it is not 0, and assume it is 17
+	SUB		One
+	STORE	Temp
+	LOAD	Five
+	STORE	TempX
+	Load	Four
+	STORE	TempY
+	;check if point1 is 17
+	LOAD	Temp
+	JZERO	Found
+	;dec point1 bc its not 1, and assume it is 18
+	SUB		One
+	STORE 	TEMP
+	LOAD	Six
+	STORE	TempX
+	Load	Four
+	STORE	TempY
+	;check if point1 is 18
+	LOAD	Temp
+	
+Found:
+	RETURN
+	
+	
+;===========================================================================================
+
+CalcDist:
+	LOAD	Zero
+	STORE	Dist
+	
+;check to see if you need to avoid any walls	
+	LOAD	X1			;check if x < 3
+	SUB		Three
+	JNEG	MoveVert 	
+	
+	LOAD	DeltaY		;check if DeltaY > 1
+	SUB		One
+	JPOS	AvoidWall1	
+	
+	LOAD	DeltaY		;check if DeltaY < -1
+	SUB		NegOne
+	JNEG	AvoidWall1
+	
+	LOAD	DeltaY		;check if DeltaY = 1
+	SUB		One
+	JPOS	MoveVert
+	JNEG	MoveVert
+	LOAD	Y1
+	SUB		Two
+	JZERO	AvoidWall1
+	
+	LOAD	DeltaY		;check if DeltaY = -1
+	SUB		NegOne
+	JPOS	MoveVert
+	JNeg	MoveVert
+	LOAD	Y1
+	SUB		Three
+	JZERO	AvoidWall1
+	
+	Load	X1			;check if need to avoid topright wall
+	SUB		Six
+	JZERO	AvoidWall2
+
+	
+AvoidWall1:
+	LOAD	X1
+	SUB		Two
+	STORE	Temp
+	LOAD	Dist
+	ADD		Temp
+	STORE	Dist
+	LOAD	Two
+	STORE	XC
+	JUMP	MoveVert
+	
+	LOAD	Seven
+	OUT		SSEG2
+	
+AvoidWall2:
+	LOAD	X1
+	SUB		Five
+	STORE	Temp
+	LOAD	Dist
+	ADD		Temp
+	STORE	Dist
+	LOAD	Five
+	STORE	XC
+	JUMP	MoveVert
+	
+MoveVert:
+	LOAD	DeltaY
+	JNEG	MoveVertNeg
+	LOAD	Dist
+	ADD		DeltaY
+	STORE	Dist
+	LOAD	Y2
+	STORE	YC
+	JUMP	MoveHor
+	
+MoveVertNeg:
+	LOAD	Dist
+	SUB		DeltaY
+	STORE	Dist		;shouldn't you add, not store?
+	LOAD	Y2
+	STORE	YC
+	JUMP	MoveHor
+
+MoveHor:
+	LOAD	X2
+	SUB		XC
+	STORE	DeltaX
+	LOAD	DeltaX
+	JNEG	MoveHorNeg
+	LOAD	Dist
+	ADD		DeltaX
+	STORE	Dist
+	LOAD	X2
+	STORE	XC
+	JUMP	FoundDist
+	
+MoveHorNeg:
+	LOAD	Dist
+	SUB		DeltaX
+	STORE	Dist
+	LOAD	X2
+	STORE	XC
+	JUMP	FoundDist
+	
+FoundDist:
+	RETURN
+
+;===================================================================================
+
 ; Subroutine to wait (block) for 1 second
 Wait1:
 	OUT    TIMER
@@ -975,18 +1252,54 @@ UARTNL:
 ;* Variables
 ;***************************************************************
 Temp:     DW 0 ; "Temp" is not a great name, but can be useful
+TempPoint:	DW 0
+TempX:		DW 0
+TempY:		DW 0
+
+PointS:	  DW &B0
+PointSX:  DW 0
+PointSY:  DW 0
 PointC:	  DW &B0
 PointCX:  DW 0
 PointCY:  DW 0
 Point1:	  DW &B0
-Point1X:  DW 3
-Point1Y:  DW 2
+Point1X:  DW 0
+Point1Y:  DW 0
 Point2:	  DW &B0
 Point2X:  DW 0
 Point2Y:  DW 0
 Point3:	  DW &B0
 Point3X:  DW 0
 Point3Y:  DW 0
+
+Dist:		DW 0
+XC:			DW 0
+YC:			DW 0
+X1:			DW 0
+Y1:			DW 0
+X2:			DW 0
+Y2:			DW 0
+DeltaX:		DW 0
+DeltaY:		DW 0
+
+SPP1:		DW 0
+SPP2:		DW 0
+SPP3:		DW 0
+P1P2:		DW 0
+P1P3:		DW 0
+P2P3:		DW 0
+
+SPP1P2P3:	DW 0
+SPP1P3P2:	DW 0
+SPP2P1P3:	DW 0
+SPP2P3P1:	DW 0
+SPP3P1P2:	DW 0
+SPP3P2P1:	DW 0
+
+ShortPath:	DW 0
+P1:			DW 0
+P2:			DW 0
+P3:			DW 0
 
 ;***************************************************************
 ;* Constants
