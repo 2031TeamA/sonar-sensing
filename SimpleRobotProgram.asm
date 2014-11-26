@@ -561,7 +561,7 @@ TurnCheck:              ; Makes sure it doesn't start reading a good distance - 
     CALL    IsValidReading
     JPOS    TurnLoopStart
 TurnLoop:               ; Turns the robot until it reads a good distance (going sideways) as well as one in front
-    CALL    UpdateMotors
+    CALL    TurnMotorsFSlow
     CALL    ReadSides
     CALL    IsValidReading
     JNEG    TurnLoop
