@@ -55,16 +55,14 @@ Main:                   ; Program starts here.
     OUT     SONAREN
     
     ;CALL    TurnLeft90
-    
-    
-    
-    ;CALL    ReadInput
-    ;CALL    Localize
+
+    CALL    ReadInput
     CALL    TryTurning
     CALL    Localize
-    LOAD    CurrPosX
-    SHIFT   8
-    ADD     CurrPosY
+    ;LOAD    CurrPosX
+    ;SHIFT   8
+    ;ADD     CurrPosY
+    LOAD    CurrPosTry
     OUT     SSEG2
     OUT     RESETPOS
 DieHard:
@@ -121,40 +119,41 @@ RetHighCutoff:
 RetLowCutoff:
     LOAD    LimitLow
     RETURN
-    
+
+TurnAmount: DW  0
+TurnAC:
+    JUMP    TurnStart
 TurnLeft90:
-    OUT     RESETPOS
-TurnLeftLoop:
-    IN      THETA
-    CALL    LimitDeg180
-    ADDI    -91
-    SHIFT   2
-    CALL    LimitRoutine
-    CALL    TurnMotorsAC
-	IN      THETA
-    CALL    LimitDeg180
-	ADDI    -91
-	JNEG    TurnLeftLoop
-    CALL    BrakeMotors
-	OUT     RESETPOS
-	RETURN
-    
+    LOADI   -90
+    JUMP    TurnStart
 TurnRight90:
+    LOADI   90
+TurnStart:
+    CALL    Increment
+    STORE   TurnAmount
     OUT     RESETPOS
-TurnRightLoop:
+TurnACLoop:
     IN      THETA
     CALL    LimitDeg180
-    ADDI    91
+    ADD     TurnAmount
     SHIFT   2
     CALL    LimitRoutine
     CALL    TurnMotorsAC
 	IN      THETA
     CALL    LimitDeg180
-	ADDI    91
-	JPOS    TurnRightLoop
+	ADD     TurnAmount
+	JNEG    TurnACLoop
     CALL    BrakeMotors
 	OUT     RESETPOS
 	RETURN
+
+Increment:
+    JNEG    IncrementNeg
+    ADDI    1
+    RETURN
+IncrementNeg:
+    ADDI    -1
+    RETURN
 
 ;   DO NOT CHANGE THESE
 ;   EVER
@@ -184,12 +183,12 @@ Posit20:    DW  &H0213  ; Position (3, 4)
 Posit21:    DW  &H0312  ; Position (4, 4)
 Posit22:    DW  &H0411  ; Position (5, 4)
 Posit23:    DW  &H0500  ; Position (6, 4)
-TempPosit:  DW  &H3300
 
 CurrFootprint: DW  0
 CurrRotat:  DW  0           ; 0 UP, 1 LEFT, 2 DOWN, 3 RIGHT
 CurrPosX:   DW  0
 CurrPosY:   DW  0
+CurrPosTry: DW  0
 GridCutoff: DW  100
 Localize:
     IN      Dist0           ; Fix any reading errors
@@ -230,7 +229,8 @@ Localize:
 
     OUT     SSEG1
     CALL    ComparePosits       ; Find out where the robot currently is, which stores CurrPosX, CurrPosY, CurrRotat
-    LOAD    CurrPosX
+    ;LOAD    CurrPosX
+    LOAD    CurrPosTry
     JPOS    CompareRet
     CALL    TryTurning
     JUMP    Localize
@@ -250,154 +250,192 @@ CompareLoop:
     ADDI    1
     STORE   TempRot
 Next0:                      ; Position 0
-    LOADI   1
-    STORE   CurrPosX        ; Store the X coordinate
-    LOADI   1
-    STORE   CurrPosY        ; Store the Y coordinate
+    ;LOADI   1
+    ;STORE   CurrPosX        ; Store the X coordinate
+    ;LOADI   1
+    ;STORE   CurrPosY        ; Store the Y coordinate
+    LOADI   &H0101
+    STORE   CurrPosTry
     LOAD    Posit0
     SUB     TempHead
     JZERO   DoneComparePosits ; Check difference to see if footprint matches
 Next1:                      ; Position 1
-    LOADI   2
-    STORE   CurrPosX
-    LOADI   1
-    STORE   CurrPosY
+    ;LOADI   2
+    ;STORE   CurrPosX
+    ;LOADI   1
+    ;STORE   CurrPosY
+    LOADI   &H0201
+    STORE   CurrPosTry
     LOAD    Posit1
     SUB     TempHead
     JZERO   DoneComparePosits
 Next2:                      ; Position 2
-    LOADI   3
-    STORE   CurrPosX
-    LOADI   1
-    STORE   CurrPosY
+    ;LOADI   3
+    ;STORE   CurrPosX
+    ;LOADI   1
+    ;STORE   CurrPosY
+    LOADI   &H0301
+    STORE   CurrPosTry
     LOAD    Posit2
     SUB     TempHead
     JZERO   DoneComparePosits
 Next3:                      ; Position 3
-    LOADI   4
-    STORE   CurrPosX
-    LOADI   1
-    STORE   CurrPosY
+    ;LOADI   4
+    ;STORE   CurrPosX
+    ;LOADI   1
+    ;STORE   CurrPosY
+    LOADI   &H0401
+    STORE   CurrPosTry
     LOAD    Posit3
     SUB     TempHead
     JZERO   DoneComparePosits
 Next6:                      ; Position 6
-    LOADI   1
-    STORE   CurrPosX
-    LOADI   2
-    STORE   CurrPosY
+    ;LOADI   1
+    ;STORE   CurrPosX
+    ;LOADI   2
+    ;STORE   CurrPosY
+    LOADI   &H0102
+    STORE   CurrPosTry
     LOAD    Posit6
     SUB     TempHead
     JZERO   DoneComparePosits
 Next7:                      ; Position 7
-    LOADI   2
-    STORE   CurrPosX
-    LOADI   2
-    STORE   CurrPosY
+    ;LOADI   2
+    ;STORE   CurrPosX
+    ;LOADI   2
+    ;STORE   CurrPosY
+    LOADI   &H0202
+    STORE   CurrPosTry
     LOAD    Posit7
     SUB     TempHead
     JZERO   DoneComparePosits
 Next8:                      ; Position 8
-    LOADI   3
-    STORE   CurrPosX
-    LOADI   2
-    STORE   CurrPosY
+    ;LOADI   3
+    ;STORE   CurrPosX
+    ;LOADI   2
+    ;STORE   CurrPosY
+    LOADI   &H0302
+    STORE   CurrPosTry
     LOAD    Posit8
     SUB     TempHead
     JZERO   DoneComparePosits
 Next9:                      ; Position 9
-    LOADI   4
-    STORE   CurrPosX
-    LOADI   2
-    STORE   CurrPosY
+    ;LOADI   4
+    ;STORE   CurrPosX
+    ;LOADI   2
+    ;STORE   CurrPosY
+    LOADI   &H0402
+    STORE   CurrPosTry
     LOAD    Posit9
     SUB     TempHead
     JZERO   DoneComparePosits
 Next12:                     ; Position 12
-    LOADI   1
-    STORE   CurrPosX
-    LOADI   3
-    STORE   CurrPosY
+    ;LOADI   1
+    ;STORE   CurrPosX
+    ;LOADI   3
+    ;STORE   CurrPosY
+    LOADI   &H0103
+    STORE   CurrPosTry
     LOAD    Posit12
     SUB     TempHead
     JZERO   DoneComparePosits
 Next13:                     ; Position 13
-    LOADI   2
-    STORE   CurrPosX
-    LOADI   3
-    STORE   CurrPosY
+    ;LOADI   2
+    ;STORE   CurrPosX
+    ;LOADI   3
+    ;STORE   CurrPosY
+    LOADI   &H0203
+    STORE   CurrPosTry
     LOAD    Posit13
     SUB     TempHead
     JZERO   DoneComparePosits
 Next14:                     ; Position 14
-    LOADI   3
-    STORE   CurrPosX
-    LOADI   3
-    STORE   CurrPosY
+    ;LOADI   3
+    ;STORE   CurrPosX
+    ;LOADI   3
+    ;STORE   CurrPosY
+    LOADI   &H0303
+    STORE   CurrPosTry
     LOAD    Posit14
     SUB     TempHead
     JZERO   DoneComparePosits
 Next15:                     ; Position 15
-    LOADI   4
-    STORE   CurrPosX
-    LOADI   3
-    STORE   CurrPosY
+    ;LOADI   4
+    ;STORE   CurrPosX
+    ;LOADI   3
+    ;STORE   CurrPosY
+    LOADI   &H0403
+    STORE   CurrPosTry
     LOAD    Posit15
     SUB     TempHead
     JZERO   DoneComparePosits
 Next16:                     ; Position 16
-    LOADI   5
-    STORE   CurrPosX
-    LOADI   3
-    STORE   CurrPosY
+    ;LOADI   5
+    ;STORE   CurrPosX
+    ;LOADI   3
+    ;STORE   CurrPosY
+    LOADI   &H0503
+    STORE   CurrPosTry
     LOAD    Posit16
     SUB     TempHead
     JZERO   DoneComparePosits
 Next18:                     ; Position 18
-    LOADI   1
-    STORE   CurrPosX
-    LOADI   4
-    STORE   CurrPosY
+    ;LOADI   1
+    ;STORE   CurrPosX
+    ;LOADI   4
+    ;STORE   CurrPosY
+    LOADI   &H0104
+    STORE   CurrPosTry
     LOAD    Posit18
     SUB     TempHead
     JZERO   DoneComparePosits
 Next19:                     ; Position 19
-    LOADI   2
-    STORE   CurrPosX
-    LOADI   4
-    STORE   CurrPosY
+    ;LOADI   2
+    ;STORE   CurrPosX
+    ;LOADI   4
+    ;STORE   CurrPosY
+    LOADI   &H0204
+    STORE   CurrPosTry
     LOAD    Posit19
     SUB     TempHead
     JZERO   DoneComparePosits
 Next20:                     ; Position 20
-    LOADI   3
-    STORE   CurrPosX
-    LOADI   4
-    STORE   CurrPosY
+    ;LOADI   3
+    ;STORE   CurrPosX
+    ;LOADI   4
+    ;STORE   CurrPosY
+    LOADI   &H0304
+    STORE   CurrPosTry
     LOAD    Posit20
     SUB     TempHead
     JZERO   DoneComparePosits
 Next21:                     ; Position 21
-    LOADI   4
-    STORE   CurrPosX
-    LOADI   4
-    STORE   CurrPosY
+    ;LOADI   4
+    ;STORE   CurrPosX
+    ;LOADI   4
+    ;STORE   CurrPosY
+    LOADI   &H0404
+    STORE   CurrPosTry
     LOAD    Posit21
     SUB     TempHead
     JZERO   DoneComparePosits
 Next22:                     ; Position 22
-    LOADI   5
-    STORE   CurrPosX
-    LOADI   4
-    STORE   CurrPosY
+    ;LOADI   5
+    ;STORE   CurrPosX
+    ;LOADI   4
+    ;STORE   CurrPosY
+    LOADI   &H0504
+    STORE   CurrPosTry
     LOAD    Posit22
     SUB     TempHead
     JZERO   DoneComparePosits
 Next23:                     ; Position 23
-    LOADI   6
-    STORE   CurrPosX
-    LOADI   4
-    STORE   CurrPosY
+    ;LOADI   6
+    ;STORE   CurrPosX
+    ;LOADI   4
+    ;STORE   CurrPosY
+    LOADI   &H0604
+    STORE   CurrPosTry
     LOAD    Posit23
     SUB     TempHead
     JZERO   DoneComparePosits
@@ -414,6 +452,7 @@ Next23:                     ; Position 23
     LOADI   -1              ; If so, set coordinates to (-1, -1)
     STORE   CurrPosX
     STORE   CurrPosY
+    STORE   CurrPosTry
     RETURN        ; Die
 NextContinue:
     LOAD    TempHead        ; Load the heading
@@ -548,9 +587,8 @@ Counter:        DW  3
 FrontCutoff:    DW  1000
 TryTurning:             ; Tries to turn until it detects a valid orientation based on side distance
     OUT     RESETPOS
-    CALL    TurnMotorsFSlow
 TurnLoopStart:          ; Turns a bit before detecting a good distance - starts turning to build up inertia
-    CALL    UpdateMotors
+    CALL    TurnMotorsFSlow
     CALL    Wait1
     LOAD    Counter
     ADDI    -1
@@ -569,10 +607,13 @@ TurnLoop:               ; Turns the robot until it reads a good distance (going 
     SUB     FrontCutoff
     JPOS    TurnLoop
     CALL    BrakeMotors
-    
+    LOADI   3
+    CALL    WaitAC
     CALL    ReadSides   ; Tests still sees good distance after breaking
     CALL    IsValidReading
     JNEG    TurnLoop    ; Tries again if invalid
+    LOADI   -3
+    CALL    TurnAC
     RETURN
 
 FtAmount:   DW  0
