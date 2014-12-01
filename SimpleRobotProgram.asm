@@ -189,6 +189,25 @@ Posit20:    DW  &H0213  ; Position (3, 4)
 Posit21:    DW  &H0312  ; Position (4, 4)
 Posit22:    DW  &H0411  ; Position (5, 4)
 Posit23:    DW  &H0500  ; Position (6, 4)
+Loc11:      DW  &H0101
+Loc21:      DW  &H0201
+Loc31:      DW  &H0301
+Loc41:      DW  &H0401
+Loc12:      DW  &H0102
+Loc22:      DW  &H0202
+Loc32:      DW  &H0302
+Loc42:      DW  &H0402
+Loc13:      DW  &H0103
+Loc23:      DW  &H0203
+Loc33:      DW  &H0303
+Loc43:      DW  &H0403
+Loc53:      DW  &H0503
+Loc14:      DW  &H0104
+Loc24:      DW  &H0204
+Loc34:      DW  &H0304
+Loc44:      DW  &H0404
+Loc54:      DW  &H0504
+Loc64:      DW  &H0604
 
 CurrFootprint: DW  0
 CurrRotat:  DW  0           ; 0 UP, 1 LEFT, 2 DOWN, 3 RIGHT
@@ -243,8 +262,6 @@ Localize:
 CompareRet:
     RETURN
 
-FirstFourBits:  DW  &HF000      ; The first 4 bits (used for rotations)
-FirstFourBits:  DW  &H000F      ; The last 4 bits (used for rotations)
 TempHead:       DW  0           ; The temp variable for the robot footprint
 TempRot:        DW  -1          ; The temp variable for the robot rotation
 ComparePosits:
@@ -261,7 +278,7 @@ Next0:                      ; Position 0
     ;STORE   CurrPosX        ; Store the X coordinate
     ;LOADI   1
     ;STORE   CurrPosY        ; Store the Y coordinate
-    LOADI   &H0101
+    LOAD    Loc11
     STORE   CurrPosTry
     LOAD    Posit0
     SUB     TempHead
@@ -271,7 +288,7 @@ Next1:                      ; Position 1
     ;STORE   CurrPosX
     ;LOADI   1
     ;STORE   CurrPosY
-    LOADI   &H0201
+    LOAD    Loc21
     STORE   CurrPosTry
     LOAD    Posit1
     SUB     TempHead
@@ -281,7 +298,7 @@ Next2:                      ; Position 2
     ;STORE   CurrPosX
     ;LOADI   1
     ;STORE   CurrPosY
-    LOADI   &H0301
+    LOAD    Loc31
     STORE   CurrPosTry
     LOAD    Posit2
     SUB     TempHead
@@ -291,7 +308,7 @@ Next3:                      ; Position 3
     ;STORE   CurrPosX
     ;LOADI   1
     ;STORE   CurrPosY
-    LOADI   &H0401
+    LOAD    Loc41
     STORE   CurrPosTry
     LOAD    Posit3
     SUB     TempHead
@@ -301,7 +318,7 @@ Next6:                      ; Position 6
     ;STORE   CurrPosX
     ;LOADI   2
     ;STORE   CurrPosY
-    LOADI   &H0102
+    LOAD    Loc12
     STORE   CurrPosTry
     LOAD    Posit6
     SUB     TempHead
@@ -311,7 +328,7 @@ Next7:                      ; Position 7
     ;STORE   CurrPosX
     ;LOADI   2
     ;STORE   CurrPosY
-    LOADI   &H0202
+    LOAD    Loc22
     STORE   CurrPosTry
     LOAD    Posit7
     SUB     TempHead
@@ -321,7 +338,7 @@ Next8:                      ; Position 8
     ;STORE   CurrPosX
     ;LOADI   2
     ;STORE   CurrPosY
-    LOADI   &H0302
+    LOAD    Loc32
     STORE   CurrPosTry
     LOAD    Posit8
     SUB     TempHead
@@ -331,7 +348,7 @@ Next9:                      ; Position 9
     ;STORE   CurrPosX
     ;LOADI   2
     ;STORE   CurrPosY
-    LOADI   &H0402
+    LOAD    Loc42
     STORE   CurrPosTry
     LOAD    Posit9
     SUB     TempHead
@@ -341,7 +358,7 @@ Next12:                     ; Position 12
     ;STORE   CurrPosX
     ;LOADI   3
     ;STORE   CurrPosY
-    LOADI   &H0103
+    LOAD    Loc13
     STORE   CurrPosTry
     LOAD    Posit12
     SUB     TempHead
@@ -351,7 +368,7 @@ Next13:                     ; Position 13
     ;STORE   CurrPosX
     ;LOADI   3
     ;STORE   CurrPosY
-    LOADI   &H0203
+    LOAD    Loc23
     STORE   CurrPosTry
     LOAD    Posit13
     SUB     TempHead
@@ -361,7 +378,7 @@ Next14:                     ; Position 14
     ;STORE   CurrPosX
     ;LOADI   3
     ;STORE   CurrPosY
-    LOADI   &H0303
+    LOAD    Loc33
     STORE   CurrPosTry
     LOAD    Posit14
     SUB     TempHead
@@ -371,7 +388,7 @@ Next15:                     ; Position 15
     ;STORE   CurrPosX
     ;LOADI   3
     ;STORE   CurrPosY
-    LOADI   &H0403
+    LOAD    Loc43
     STORE   CurrPosTry
     LOAD    Posit15
     SUB     TempHead
@@ -381,7 +398,7 @@ Next16:                     ; Position 16
     ;STORE   CurrPosX
     ;LOADI   3
     ;STORE   CurrPosY
-    LOADI   &H0503
+    LOAD    Loc53
     STORE   CurrPosTry
     LOAD    Posit16
     SUB     TempHead
@@ -391,7 +408,7 @@ Next18:                     ; Position 18
     ;STORE   CurrPosX
     ;LOADI   4
     ;STORE   CurrPosY
-    LOADI   &H0104
+    LOAD    Loc14
     STORE   CurrPosTry
     LOAD    Posit18
     SUB     TempHead
@@ -401,7 +418,7 @@ Next19:                     ; Position 19
     ;STORE   CurrPosX
     ;LOADI   4
     ;STORE   CurrPosY
-    LOADI   &H0204
+    LOAD    Loc24
     STORE   CurrPosTry
     LOAD    Posit19
     SUB     TempHead
@@ -411,7 +428,7 @@ Next20:                     ; Position 20
     ;STORE   CurrPosX
     ;LOADI   4
     ;STORE   CurrPosY
-    LOADI   &H0304
+    LOAD    Loc34
     STORE   CurrPosTry
     LOAD    Posit20
     SUB     TempHead
@@ -421,7 +438,7 @@ Next21:                     ; Position 21
     ;STORE   CurrPosX
     ;LOADI   4
     ;STORE   CurrPosY
-    LOADI   &H0404
+    LOAD    Loc44
     STORE   CurrPosTry
     LOAD    Posit21
     SUB     TempHead
@@ -431,7 +448,7 @@ Next22:                     ; Position 22
     ;STORE   CurrPosX
     ;LOADI   4
     ;STORE   CurrPosY
-    LOADI   &H0504
+    LOAD    Loc54
     STORE   CurrPosTry
     LOAD    Posit22
     SUB     TempHead
@@ -441,16 +458,12 @@ Next23:                     ; Position 23
     ;STORE   CurrPosX
     ;LOADI   4
     ;STORE   CurrPosY
-    LOADI   &H0604
+    LOAD    Loc64
     STORE   CurrPosTry
     LOAD    Posit23
     SUB     TempHead
     JZERO   DoneComparePosits
 
-    
-    
-    
-    
     LOAD    TempRot
     ADDI    -4
     JNEG    NextContinue    ; Has it more more than 4 times?
@@ -463,7 +476,7 @@ Next23:                     ; Position 23
     RETURN        ; Die
 NextContinue:
     LOAD    TempHead        ; Load the heading
-    AND     FirstFourBits   ; Get the 4 MSBs
+    AND     FrstNibble   ; Get the 4 MSBs
     SHIFT   -12             ; Shift them to the far right
     STORE   Temp            ; Store them
     LOAD    TempHead        ; Get the heading back
@@ -824,7 +837,6 @@ NL: DW      &H0A1B
 
 ;---------------------navigation stuff
 
-
 ; points have already been entered and placed into dest1X,
 ; dest1Y, etc. MoveForward & TurnLeft90 implemented
 
@@ -1117,8 +1129,10 @@ MoveDistInFeet:
 		STORE	Temp
 MDIF:	LOAD	Temp
 		ADD		TwoFeet
+        STORE   Temp
 		LOAD	MoveDist
 		ADDI	-1
+        STORE   MoveDist
 		JPOS	MDIF
 		LOAD	Temp
 		STORE	MoveDist
@@ -1134,6 +1148,8 @@ Temp:       DW  0   ; Temporary Variable
 Temp2:      DW  0   ; Temporary Variable 2
 WaitTime:   DW  0   ; Input to Wait
 OneFtDist:  DW  304 ; roughly 304.8 mm per ft (but ticks are ~1.05 mm, so about 290.3 ticks)
+FrstNibble: DW  &HF000
+LastNibble: DW  &H000F
 NegOne:     DW  &HFFFF ; All 1s
 
 
