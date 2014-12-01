@@ -365,7 +365,6 @@ FoundP1P3:
 	STORE	X2
 	LOAD	Point3Y
 	STORE	Y2
-	LOAD	Y2
 	SUB		Y1
 	STORE	DeltaY
 

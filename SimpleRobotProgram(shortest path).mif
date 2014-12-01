@@ -1,0 +1,991 @@
+-- Altera Memory Initialization File (MIF)
+
+DEPTH = 1024;
+WIDTH = 16;
+
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+
+CONTENT
+  BEGIN
+    [000..3FF] : 0000;  -- Default to NOP
+
+           000 : 07A8;  -- 	LOAD	Zero
+           001 : 0B7F;  -- 	STORE	PointS
+           002 : 4800;  -- 	IN		SWITCHES
+           003 : 4C01;  -- 	OUT		LEDS
+           004 : 27B4;  -- 	AND		MaskC1
+           005 : 0B85;  -- 	STORE	Point1
+           006 : 4800;  -- 	IN		SWITCHES
+           007 : 27B5;  -- 	AND		MaskC2
+           008 : 3015;  -- 	SHIFT	-5
+           009 : 0B88;  -- 	STORE	Point2
+           00A : 3008;  -- 	SHIFT	8
+           00B : 0F85;  -- 	ADD		Point1
+           00C : 4C05;  -- 	OUT		SSEG2
+           00D : 4800;  -- 	IN		SWITCHES
+           00E : 27B7;  -- 	AND		MaskC3
+           00F : 301A;  -- 	SHIFT	-10
+           010 : 0B8B;  -- 	STORE	Point3
+           011 : 4C04;  -- 	OUT		SSEG1
+           012 : 077F;  -- 	LOAD	PointS
+           013 : 4C06;  -- 	OUT		LCD
+           014 : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           015 : 27B9;  -- 	AND    Mask1
+           016 : 3005;  -- 	SHIFT  5           ; Both LEDG2 and LEDG3
+           017 : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           018 : 3001;  -- 	SHIFT  1
+           019 : 2B7B;  -- 	OR     Temp
+           01A : 4C07;  -- 	OUT    XLEDS
+           01B : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           01C : 27BA;  -- 	AND    Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+           01D : 1C02;  -- 	JPOS   GetPoints ; not ready (KEYs are active-low, hence JPOS)
+           01E : 077F;  -- 	LOAD	PointS		;this will be the starting point
+           01F : 0B7C;  -- 	STORE	TempPoint
+           020 : 4238;  -- 	CALL	SetXY
+           021 : 077D;  -- 	LOAD	TempX
+           022 : 0B80;  -- 	STORE	PointSX
+           023 : 077E;  -- 	LOAD	TempY
+           024 : 0B81;  -- 	STORE	PointSY
+           025 : 0780;  -- 	LOAD	PointSX
+           026 : 300C;  -- 	SHIFT	12
+           027 : 0B7B;  -- 	STORE	Temp
+           028 : 0781;  -- 	LOAD	PointSY
+           029 : 3008;  -- 	SHIFT	8
+           02A : 0F7B;  -- 	ADD		TEMP
+           02B : 0F7F;  -- 	ADD		PointS
+           02C : 4C06;  -- 	OUT		LCD
+           02D : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           02E : 27B9;  -- 	AND    Mask1
+           02F : 3001;  -- 	SHIFT  1           ; Both LEDG4 and LEDG5
+           030 : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           031 : 3001;  -- 	SHIFT  1
+           032 : 2B7B;  -- 	OR     Temp
+           033 : 4C07;  -- 	OUT    XLEDS
+           034 : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           035 : 27B8;  -- 	AND    Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
+           036 : 1C25;  -- 	JPOS   FoundStart ; not ready (KEYs are active-low, hence JPOS)
+           037 : 0785;  -- 	LOAD	Point1
+           038 : 0B7C;  -- 	STORE	TempPoint
+           039 : 4238;  -- 	CALL	SetXY
+           03A : 077D;  -- 	LOAD	TempX
+           03B : 0B86;  -- 	STORE	Point1X
+           03C : 077E;  -- 	LOAD	TempY
+           03D : 0B87;  -- 	STORE	Point1Y
+           03E : 0786;  -- 	LOAD	Point1X
+           03F : 300C;  -- 	SHIFT	12
+           040 : 0B7B;  -- 	STORE	Temp
+           041 : 0787;  -- 	LOAD	Point1Y
+           042 : 3008;  -- 	SHIFT	8
+           043 : 0F7B;  -- 	ADD		TEMP
+           044 : 0F85;  -- 	ADD		Point1
+           045 : 4C06;  -- 	OUT		LCD
+           046 : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           047 : 27B9;  -- 	AND    Mask1
+           048 : 3003;  -- 	SHIFT  3           ; Both LEDG4 and LEDG5
+           049 : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           04A : 3001;  -- 	SHIFT  1
+           04B : 2B7B;  -- 	OR     Temp
+           04C : 4C07;  -- 	OUT    XLEDS
+           04D : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           04E : 27B9;  -- 	AND    Mask1       ; KEY3 mask (KEY0 is reset and can't be read)
+           04F : 1C3E;  -- 	JPOS   Found1 ; not ready (KEYs are active-low, hence JPOS)
+           050 : 0788;  -- 	LOAD	Point2
+           051 : 0B7C;  -- 	STORE	TempPoint
+           052 : 4238;  -- 	CALL	SetXY
+           053 : 077D;  -- 	LOAD	TempX
+           054 : 0B89;  -- 	STORE	Point2X
+           055 : 077E;  -- 	LOAD	TempY
+           056 : 0B8A;  -- 	STORE	Point2Y
+           057 : 0789;  -- 	LOAD	Point2X
+           058 : 300C;  -- 	SHIFT	12
+           059 : 0B7B;  -- 	STORE	Temp
+           05A : 078A;  -- 	LOAD	Point2Y
+           05B : 3008;  -- 	SHIFT	8
+           05C : 0F7B;  -- 	ADD		TEMP
+           05D : 0F88;  -- 	ADD		Point2
+           05E : 4C06;  -- 	OUT		LCD
+           05F : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           060 : 27B9;  -- 	AND    Mask1
+           061 : 3005;  -- 	SHIFT  5           ; Both LEDG6 and LEDG7
+           062 : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           063 : 3001;  -- 	SHIFT  1
+           064 : 2B7B;  -- 	OR     Temp
+           065 : 4C07;  -- 	OUT    XLEDS
+           066 : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           067 : 27BA;  -- 	AND    Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+           068 : 1C57;  -- 	JPOS   Found2 ; not ready (KEYs are active-low, hence JPOS)
+           069 : 078B;  -- 	LOAD	Point3
+           06A : 0B7C;  -- 	STORE	TempPoint
+           06B : 4238;  -- 	CALL	SetXY
+           06C : 077D;  -- 	LOAD	TempX
+           06D : 0B8C;  -- 	STORE	Point3X
+           06E : 077E;  -- 	LOAD	TempY
+           06F : 0B8D;  -- 	STORE	Point3Y
+           070 : 078C;  -- 	LOAD	Point3X
+           071 : 300C;  -- 	SHIFT	12
+           072 : 0B7B;  -- 	STORE	Temp
+           073 : 078D;  -- 	LOAD	Point3Y
+           074 : 3008;  -- 	SHIFT	8
+           075 : 0F7B;  -- 	ADD		TEMP
+           076 : 0F8B;  -- 	ADD		Point3
+           077 : 4C06;  -- 	OUT		LCD
+           078 : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           079 : 27B9;  -- 	AND    Mask1
+           07A : 3001;  -- 	SHIFT  1           ; Both LEDG2 and LEDG3
+           07B : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           07C : 3001;  -- 	SHIFT  1
+           07D : 2B7B;  -- 	OR     Temp
+           07E : 4C07;  -- 	OUT    XLEDS
+           07F : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           080 : 27B8;  -- 	AND    Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
+           081 : 1C70;  -- 	JPOS   Found3 ; not ready (KEYs are active-low, hence JPOS)
+           082 : 0780;  -- 	LOAD	PointSX
+           083 : 0B91;  -- 	STORE	X1
+           084 : 0B8F;  -- 	STORE	XC
+           085 : 0781;  -- 	LOAD	PointSY
+           086 : 0B92;  -- 	STORE	Y1
+           087 : 0B90;  -- 	STORE	YC
+           088 : 0786;  -- 	LOAD	Point1X
+           089 : 0B93;  -- 	STORE	X2
+           08A : 0787;  -- 	LOAD	Point1Y
+           08B : 0B94;  -- 	STORE	Y2
+           08C : 0794;  -- 	LOAD	Y2
+           08D : 1392;  -- 	SUB		Y1
+           08E : 0B96;  -- 	STORE	DeltaY
+           08F : 42CD;  -- 	CALL	CalcDist	
+           090 : 078E;  -- 	LOAD	Dist
+           091 : 0B97;  -- 	STORE	SPP1
+           092 : 4C06;  -- 	OUT		LCD
+           093 : 4802;  -- 	IN		TIMER       ; We'll blink the LEDs above PB3
+           094 : 27B9;  -- 	AND		Mask1
+           095 : 3003;  -- 	SHIFT	3           ; Both LEDG6 and LEDG7
+           096 : 0B7B;  -- 	STORE	Temp        ; (overkill, but looks nice)
+           097 : 3001;  -- 	SHIFT	1
+           098 : 2B7B;  -- 	OR		Temp
+           099 : 4C07;  -- 	OUT		XLEDS
+           09A : 4803;  -- 	IN		XIO         ; XIO contains KEYs
+           09B : 27B9;  -- 	AND		Mask1       ; KEY3 mask (KEY0 is reset and can't be read)
+           09C : 1C90;  -- 	JPOS 	FoundSPP1 ; not ready (KEYs are active-low, hence JPOS)
+           09D : 0780;  -- 	LOAD	PointSX
+           09E : 0B91;  -- 	STORE	X1
+           09F : 0B8F;  -- 	STORE	XC
+           0A0 : 0781;  -- 	LOAD	PointSY
+           0A1 : 0B92;  -- 	STORE	Y1
+           0A2 : 0B90;  -- 	STORE	YC
+           0A3 : 0789;  -- 	LOAD	Point2X
+           0A4 : 0B93;  -- 	STORE	X2
+           0A5 : 078A;  -- 	LOAD	Point2Y
+           0A6 : 0B94;  -- 	STORE	Y2
+           0A7 : 0794;  -- 	LOAD	Y2
+           0A8 : 1392;  -- 	SUB		Y1
+           0A9 : 0B96;  -- 	STORE	DeltaY
+           0AA : 42CD;  -- 	CALL	CalcDist	
+           0AB : 078E;  -- 	LOAD	Dist
+           0AC : 0B98;  -- 	STORE	SPP2
+           0AD : 4C06;  -- 	OUT		LCD
+           0AE : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           0AF : 27B9;  -- 	AND    Mask1
+           0B0 : 3005;  -- 	SHIFT  5           ; Both LEDG6 and LEDG7
+           0B1 : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           0B2 : 3001;  -- 	SHIFT  1
+           0B3 : 2B7B;  -- 	OR     Temp
+           0B4 : 4C07;  -- 	OUT    XLEDS
+           0B5 : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           0B6 : 27BA;  -- 	AND    Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+           0B7 : 1CAB;  -- 	JPOS   FoundSPP2 ; not ready (KEYs are active-low, hence JPOS)
+           0B8 : 0780;  -- 	LOAD	PointSX
+           0B9 : 0B91;  -- 	STORE	X1
+           0BA : 0B8F;  -- 	STORE	XC
+           0BB : 0781;  -- 	LOAD	PointSY
+           0BC : 0B92;  -- 	STORE	Y1
+           0BD : 0B90;  -- 	STORE	YC
+           0BE : 078C;  -- 	LOAD	Point3X
+           0BF : 0B93;  -- 	STORE	X2
+           0C0 : 078D;  -- 	LOAD	Point3Y
+           0C1 : 0B94;  -- 	STORE	Y2
+           0C2 : 0794;  -- 	LOAD	Y2
+           0C3 : 1392;  -- 	SUB		Y1
+           0C4 : 0B96;  -- 	STORE	DeltaY
+           0C5 : 42CD;  -- 	CALL	CalcDist	
+           0C6 : 078E;  -- 	LOAD	Dist
+           0C7 : 0B99;  -- 	STORE	SPP3
+           0C8 : 4C06;  -- 	OUT		LCD
+           0C9 : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           0CA : 27B9;  -- 	AND    Mask1
+           0CB : 3001;  -- 	SHIFT  1           ; Both LEDG2 and LEDG3
+           0CC : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           0CD : 3001;  -- 	SHIFT  1
+           0CE : 2B7B;  -- 	OR     Temp
+           0CF : 4C07;  -- 	OUT    XLEDS
+           0D0 : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           0D1 : 27B8;  -- 	AND    Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
+           0D2 : 1CC6;  -- 	JPOS   FoundSPP3 ; not ready (KEYs are active-low, hence JPOS)
+           0D3 : 0786;  -- 	LOAD	Point1X
+           0D4 : 0B91;  -- 	STORE	X1
+           0D5 : 0B8F;  -- 	STORE	XC
+           0D6 : 0787;  -- 	LOAD	Point1Y
+           0D7 : 0B92;  -- 	STORE	Y1
+           0D8 : 0B90;  -- 	STORE	YC
+           0D9 : 0789;  -- 	LOAD	Point2X
+           0DA : 0B93;  -- 	STORE	X2
+           0DB : 078A;  -- 	LOAD	Point2Y
+           0DC : 0B94;  -- 	STORE	Y2
+           0DD : 0794;  -- 	LOAD	Y2
+           0DE : 1392;  -- 	SUB		Y1
+           0DF : 0B96;  -- 	STORE	DeltaY
+           0E0 : 42CD;  -- 	CALL	CalcDist	
+           0E1 : 078E;  -- 	LOAD	Dist
+           0E2 : 0B9A;  -- 	STORE	P1P2
+           0E3 : 4C06;  -- 	OUT		LCD
+           0E4 : 4802;  -- 	IN		TIMER       ; We'll blink the LEDs above PB3
+           0E5 : 27B9;  -- 	AND		Mask1
+           0E6 : 3003;  -- 	SHIFT	3           ; Both LEDG6 and LEDG7
+           0E7 : 0B7B;  -- 	STORE	Temp        ; (overkill, but looks nice)
+           0E8 : 3001;  -- 	SHIFT	1
+           0E9 : 2B7B;  -- 	OR		Temp
+           0EA : 4C07;  -- 	OUT		XLEDS
+           0EB : 4803;  -- 	IN		XIO         ; XIO contains KEYs
+           0EC : 27B9;  -- 	AND		Mask1       ; KEY3 mask (KEY0 is reset and can't be read)
+           0ED : 1CE1;  -- 	JPOS 	FoundP1P2 ; not ready (KEYs are active-low, hence JPOS)
+           0EE : 0786;  -- 	LOAD	Point1X
+           0EF : 0B91;  -- 	STORE	X1
+           0F0 : 0B8F;  -- 	STORE	XC
+           0F1 : 0787;  -- 	LOAD	Point1Y
+           0F2 : 0B92;  -- 	STORE	Y1
+           0F3 : 0B90;  -- 	STORE	YC
+           0F4 : 078C;  -- 	LOAD	Point3X
+           0F5 : 0B93;  -- 	STORE	X2
+           0F6 : 078D;  -- 	LOAD	Point3Y
+           0F7 : 0B94;  -- 	STORE	Y2
+           0F8 : 0794;  -- 	LOAD	Y2
+           0F9 : 1392;  -- 	SUB		Y1
+           0FA : 0B96;  -- 	STORE	DeltaY
+           0FB : 42CD;  -- 	CALL	CalcDist	
+           0FC : 078E;  -- 	LOAD	Dist
+           0FD : 0B9B;  -- 	STORE	P1P3
+           0FE : 4C06;  -- 	OUT		LCD
+           0FF : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           100 : 27B9;  -- 	AND    Mask1
+           101 : 3005;  -- 	SHIFT  5           ; Both LEDG6 and LEDG7
+           102 : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           103 : 3001;  -- 	SHIFT  1
+           104 : 2B7B;  -- 	OR     Temp
+           105 : 4C07;  -- 	OUT    XLEDS
+           106 : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           107 : 27BA;  -- 	AND    Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+           108 : 1CFC;  -- 	JPOS   FoundP1P3 ; not ready (KEYs are active-low, hence JPOS)
+           109 : 0789;  -- 	LOAD	Point2X
+           10A : 0B91;  -- 	STORE	X1
+           10B : 0B8F;  -- 	STORE	XC
+           10C : 078A;  -- 	LOAD	Point2Y
+           10D : 0B92;  -- 	STORE	Y1
+           10E : 0B90;  -- 	STORE	YC
+           10F : 078C;  -- 	LOAD	Point3X
+           110 : 0B93;  -- 	STORE	X2
+           111 : 078D;  -- 	LOAD	Point3Y
+           112 : 0B94;  -- 	STORE	Y2
+           113 : 1392;  -- 	SUB		Y1
+           114 : 0B96;  -- 	STORE	DeltaY
+           115 : 42CD;  -- 	CALL	CalcDist	
+           116 : 078E;  -- 	LOAD	Dist
+           117 : 0B9C;  -- 	STORE	P2P3
+           118 : 4C06;  -- 	OUT		LCD
+           119 : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           11A : 27B9;  -- 	AND    Mask1
+           11B : 3001;  -- 	SHIFT  1           ; Both LEDG2 and LEDG3
+           11C : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           11D : 3001;  -- 	SHIFT  1
+           11E : 2B7B;  -- 	OR     Temp
+           11F : 4C07;  -- 	OUT    XLEDS
+           120 : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           121 : 27B8;  -- 	AND    Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
+           122 : 1D16;  -- 	JPOS   FoundP2P3 ; not ready (KEYs are active-low, hence JPOS)
+           123 : 0797;  -- 	LOAD	SPP1
+           124 : 0F9A;  -- 	ADD		P1P2
+           125 : 0F9C;  -- 	ADD		P2P3
+           126 : 0B9D;  -- 	STORE	SPP1P2P3
+           127 : 0797;  -- 	LOAD	SPP1
+           128 : 0F9B;  -- 	ADD		P1P3
+           129 : 0F9C;  -- 	ADD		P2P3	;P3P2
+           12A : 0B9E;  -- 	STORE	SPP1P3P2
+           12B : 0798;  -- 	LOAD	SPP2
+           12C : 0F9A;  -- 	ADD		P1P2	;P2P1
+           12D : 0F9B;  -- 	ADD		P1P3
+           12E : 0B9F;  -- 	STORE	SPP2P1P3
+           12F : 0798;  -- 	LOAD	SPP2
+           130 : 0F9C;  -- 	ADD		P2P3
+           131 : 0F9B;  -- 	ADD		P1P3	;P3P1
+           132 : 0BA0;  -- 	STORE	SPP2P3P1
+           133 : 0799;  -- 	LOAD	SPP3
+           134 : 0F9B;  -- 	ADD		P1P3	;P3P1
+           135 : 0F9A;  -- 	ADD		P1P2
+           136 : 0BA1;  -- 	STORE	SPP3P1P2
+           137 : 0799;  -- 	LOAD	SPP3
+           138 : 0F9C;  -- 	ADD		P2P3	;P3P2
+           139 : 0F9A;  -- 	ADD		P1P2	;P2P1
+           13A : 0BA2;  -- 	STORE	SPP3P2P1
+           13B : 07A2;  -- 	LOAD	SPP3P2P1
+           13C : 4C06;  -- 	OUT		LCD
+           13D : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           13E : 27B9;  -- 	AND    Mask1
+           13F : 3003;  -- 	SHIFT  3           ; Both LEDG2 and LEDG3
+           140 : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           141 : 3001;  -- 	SHIFT  1
+           142 : 2B7B;  -- 	OR     Temp
+           143 : 4C07;  -- 	OUT    XLEDS
+           144 : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           145 : 27B9;  -- 	AND    Mask1       ; KEY3 mask (KEY0 is reset and can't be read)
+           146 : 1D3B;  -- 	JPOS   SetPaths ; not ready (KEYs are active-low, hence JPOS)
+           147 : 079D;  -- 	LOAD	SPP1P2P3
+           148 : 139E;  -- 	SUB		SPP1P3P2
+           149 : 1D59;  -- 	JPOS	CheckP2
+           14A : 079D;  -- 	LOAD	SPP1P2P3
+           14B : 139F;  -- 	SUB		SPP2P1P3
+           14C : 1D68;  -- 	JPOS	CheckP3
+           14D : 079D;  -- 	LOAD	SPP1P2P3
+           14E : 13A0;  -- 	SUB		SPP2P3P1
+           14F : 1D74;  -- 	JPOS	CheckP4
+           150 : 079D;  -- 	LOAD	SPP1P2P3
+           151 : 13A1;  -- 	SUB		SPP3P1P2
+           152 : 1D7D;  -- 	JPOS	CheckP5
+           153 : 079D;  -- 	LOAD	SPP1P2P3
+           154 : 13A2;  -- 	SUB		SPP3P2P1
+           155 : 1D83;  -- 	JPOS	CheckP6
+           156 : 07A9;  -- 	LOAD	One
+           157 : 0BA3;  -- 	STORE	ShortPath
+           158 : 1D86;  -- 	JPOS	FoundShort
+           159 : 079E;  -- 	LOAD	SPP1P3P2
+           15A : 139F;  -- 	SUB		SPP2P1P3
+           15B : 1D68;  -- 	JPOS	CheckP3
+           15C : 079E;  -- 	LOAD	SPP1P3P2
+           15D : 13A0;  -- 	SUB		SPP2P3P1
+           15E : 1D74;  -- 	JPOS	CheckP4
+           15F : 079E;  -- 	LOAD	SPP1P3P2
+           160 : 13A1;  -- 	SUB		SPP3P1P2
+           161 : 1D7D;  -- 	JPOS	CheckP5
+           162 : 079E;  -- 	LOAD	SPP1P3P2
+           163 : 13A2;  -- 	SUB		SPP3P2P1
+           164 : 1D83;  -- 	JPOS	CheckP6
+           165 : 07AA;  -- 	LOAD	Two
+           166 : 0BA3;  -- 	STORE	ShortPath
+           167 : 1D86;  -- 	JPOS	FoundShort
+           168 : 079F;  -- 	LOAD	SPP2P1P3
+           169 : 13A0;  -- 	SUB		SPP2P3P1
+           16A : 1D74;  -- 	JPOS	CheckP4
+           16B : 079F;  -- 	LOAD	SPP2P1P3
+           16C : 13A1;  -- 	SUB		SPP3P1P2
+           16D : 1D7D;  -- 	JPOS	CheckP5
+           16E : 079F;  -- 	LOAD	SPP2P1P3
+           16F : 13A2;  -- 	SUB		SPP3P2P1
+           170 : 1D83;  -- 	JPOS	CheckP6
+           171 : 07AB;  -- 	LOAD	Three
+           172 : 0BA3;  -- 	STORE	ShortPath
+           173 : 1D86;  -- 	JPOS	FoundShort
+           174 : 07A0;  -- 	LOAD	SPP2P3P1
+           175 : 13A1;  -- 	SUB		SPP3P1P2
+           176 : 1D7D;  -- 	JPOS	CheckP5
+           177 : 07A0;  -- 	LOAD	SPP2P3P1
+           178 : 13A2;  -- 	SUB		SPP3P2P1
+           179 : 1D83;  -- 	JPOS	CheckP6
+           17A : 07AC;  -- 	LOAD	Four
+           17B : 0BA3;  -- 	STORE	ShortPath
+           17C : 1D86;  -- 	JPOS	FoundShort
+           17D : 07A1;  -- 	LOAD	SPP3P1P2
+           17E : 13A2;  -- 	SUB		SPP3P2P1
+           17F : 1D83;  -- 	JPOS	CheckP6
+           180 : 07AD;  -- 	LOAD	Five
+           181 : 0BA3;  -- 	STORE	ShortPath
+           182 : 1D86;  -- 	JPOS	FoundShort
+           183 : 07AE;  -- 	LOAD	Six
+           184 : 0BA3;  -- 	STORE	ShortPath
+           185 : 1D86;  -- 	JPOS	FoundShort
+           186 : 07A3;  --  	LOAD	ShortPath
+           187 : 4C06;  --  	OUT		LCD
+           188 : 4802;  -- 	IN		TIMER       ; We'll blink the LEDs above PB3
+           189 : 27B9;  -- 	AND		Mask1
+           18A : 3005;  -- 	SHIFT	5           ; Both LEDG6 and LEDG7
+           18B : 0B7B;  -- 	STORE	Temp        ; (overkill, but looks nice)
+           18C : 3001;  -- 	SHIFT	1
+           18D : 2B7B;  -- 	OR		Temp
+           18E : 4C07;  -- 	OUT		XLEDS
+           18F : 4803;  -- 	IN		XIO         ; XIO contains KEYs
+           190 : 27BA;  -- 	AND		Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+           191 : 1D86;  -- 	JPOS 	FoundShort ; not ready (KEYs are active-low, hence JPOS)
+           192 : 07A3;  -- 	LOAD	ShortPath
+           193 : 0B7B;  -- 	STORE	Temp
+           194 : 0785;  -- 	LOAD	Point1
+           195 : 0BA4;  -- 	STORE	P1
+           196 : 0788;  -- 	LOAD	Point2
+           197 : 0BA5;  -- 	STORE	P2
+           198 : 078B;  -- 	LOAD	Point3
+           199 : 0BA6;  -- 	STORE	P3
+           19A : 077B;  -- 	LOAD	Temp
+           19B : 13A9;  -- 	SUB		One
+           19C : 0B7B;  -- 	STORE	Temp
+           19D : 21D0;  -- 	JZERO	PointsSet
+           19E : 0785;  -- 	LOAD	Point1
+           19F : 0BA4;  -- 	STORE	P1
+           1A0 : 078B;  -- 	LOAD	Point3
+           1A1 : 0BA5;  -- 	STORE	P2
+           1A2 : 0788;  -- 	LOAD	Point2
+           1A3 : 0BA6;  -- 	STORE	P3
+           1A4 : 077B;  -- 	LOAD	Temp
+           1A5 : 13A9;  -- 	SUB		One
+           1A6 : 0B7B;  -- 	STORE	Temp
+           1A7 : 21D0;  -- 	JZERO	PointsSet
+           1A8 : 0788;  -- 	LOAD	Point2
+           1A9 : 0BA4;  -- 	STORE	P1
+           1AA : 0785;  -- 	LOAD	Point1
+           1AB : 0BA5;  -- 	STORE	P2
+           1AC : 078B;  -- 	LOAD	Point3
+           1AD : 0BA6;  -- 	STORE	P3
+           1AE : 077B;  -- 	LOAD	Temp
+           1AF : 13A9;  -- 	SUB		One
+           1B0 : 0B7B;  -- 	STORE	Temp
+           1B1 : 21D0;  -- 	JZERO	PointsSet
+           1B2 : 0788;  -- 	LOAD	Point2
+           1B3 : 0BA4;  -- 	STORE	P1
+           1B4 : 078B;  -- 	LOAD	Point3
+           1B5 : 0BA5;  -- 	STORE	P2
+           1B6 : 0785;  -- 	LOAD	Point1
+           1B7 : 0BA6;  -- 	STORE	P3
+           1B8 : 077B;  -- 	LOAD	Temp
+           1B9 : 13A9;  -- 	SUB		One
+           1BA : 0B7B;  -- 	STORE	Temp
+           1BB : 21D0;  -- 	JZERO	PointsSet
+           1BC : 078B;  -- 	LOAD	Point3
+           1BD : 0BA4;  -- 	STORE	P1
+           1BE : 0785;  -- 	LOAD	Point1
+           1BF : 0BA5;  -- 	STORE	P2
+           1C0 : 0788;  -- 	LOAD	Point2
+           1C1 : 0BA6;  -- 	STORE	P3
+           1C2 : 077B;  -- 	LOAD	Temp
+           1C3 : 13A9;  -- 	SUB		One
+           1C4 : 0B7B;  -- 	STORE	Temp
+           1C5 : 21D0;  -- 	JZERO	PointsSet
+           1C6 : 078B;  -- 	LOAD	Point3
+           1C7 : 0BA4;  -- 	STORE	P1
+           1C8 : 0788;  -- 	LOAD	Point2
+           1C9 : 0BA5;  -- 	STORE	P2
+           1CA : 0785;  -- 	LOAD	Point1
+           1CB : 0BA6;  -- 	STORE	P3
+           1CC : 077B;  -- 	LOAD	Temp
+           1CD : 13A9;  -- 	SUB		One
+           1CE : 0B7B;  -- 	STORE	Temp
+           1CF : 21D0;  -- 	JZERO	PointsSet
+           1D0 : 07A8;  -- 	LOAD	Zero
+           1D1 : 0B7B;  -- 	STORE	Temp
+           1D2 : 07A6;  -- 	LOAD	P3
+           1D3 : 3008;  -- 	SHIFT	8
+           1D4 : 0B7B;  -- 	STORE	Temp
+           1D5 : 07A5;  -- 	LOAD	P2
+           1D6 : 0F7B;  -- 	ADD		Temp
+           1D7 : 4C04;  -- 	OUT		SSEG1
+           1D8 : 07A8;  -- 	LOAD	Zero
+           1D9 : 0B7B;  -- 	STORE	Temp
+           1DA : 07A4;  -- 	LOAD	P1
+           1DB : 3008;  -- 	SHIFT	8
+           1DC : 0B7B;  -- 	STORE	Temp
+           1DD : 077F;  -- 	LOAD	PointS
+           1DE : 0F7B;  -- 	ADD		Temp
+           1DF : 4C05;  -- 	OUT		SSEG2
+           1E0 : 4802;  -- 	IN		TIMER       ; We'll blink the LEDs above PB3
+           1E1 : 27B9;  -- 	AND		Mask1
+           1E2 : 3001;  -- 	SHIFT	1           ; Both LEDG6 and LEDG7
+           1E3 : 0B7B;  -- 	STORE	Temp        ; (overkill, but looks nice)
+           1E4 : 3001;  -- 	SHIFT	1
+           1E5 : 2B7B;  -- 	OR		Temp
+           1E6 : 4C07;  -- 	OUT		XLEDS
+           1E7 : 4803;  -- 	IN		XIO         ; XIO contains KEYs
+           1E8 : 27B8;  -- 	AND		Mask0       ; KEY3 mask (KEY0 is reset and can't be read)
+           1E9 : 1DD0;  -- 	JPOS 	PointsSet ; not ready (KEYs are active-low, hence JPOS)
+           1EA : 07A8;  -- 	LOAD   Zero
+           1EB : 4C83;  -- 	OUT    LVELCMD     ; Stop motors
+           1EC : 4C8B;  -- 	OUT    RVELCMD
+           1ED : 4CB2;  -- 	OUT    SONAREN     ; Disable sonar (optional)
+           1EE : 4349;  -- 	CALL   SetupI2C    ; Configure the I2C to read the battery voltage
+           1EF : 432B;  -- 	CALL   BattCheck   ; Get battery voltage (and end if too low).
+           1F0 : 4C06;  -- 	OUT    LCD         ; Display batt voltage on LCD
+           1F1 : 4803;  -- 	IN     XIO         ; XIO contains SAFETY signal
+           1F2 : 27BC;  -- 	AND    Mask4       ; SAFETY signal is bit 4
+           1F3 : 1DF9;  -- 	JPOS   WaitForUser ; If ready, jump to wait for PB3
+           1F4 : 4802;  -- 	IN     TIMER       ; We'll use the timer value to
+           1F5 : 27B9;  -- 	AND    Mask1       ;  blink LED17 as a reminder to toggle SW17
+           1F6 : 3008;  -- 	SHIFT  8           ; Shift over to LED17
+           1F7 : 4C07;  -- 	OUT    XLEDS       ; LED17 blinks at 2.5Hz (10Hz/4)
+           1F8 : 15F1;  -- 	JUMP   WaitForSafety
+           1F9 : 4802;  -- 	IN     TIMER       ; We'll blink the LEDs above PB3
+           1FA : 27B9;  -- 	AND    Mask1
+           1FB : 3005;  -- 	SHIFT  5           ; Both LEDG6 and LEDG7
+           1FC : 0B7B;  -- 	STORE  Temp        ; (overkill, but looks nice)
+           1FD : 3001;  -- 	SHIFT  1
+           1FE : 2B7B;  -- 	OR     Temp
+           1FF : 4C07;  -- 	OUT    XLEDS
+           200 : 4803;  -- 	IN     XIO         ; XIO contains KEYs
+           201 : 27BA;  -- 	AND    Mask2       ; KEY3 mask (KEY0 is reset and can't be read)
+           202 : 1DF9;  -- 	JPOS   WaitForUser ; not ready (KEYs are active-low, hence JPOS)
+           203 : 07A8;  -- 	LOAD   Zero
+           204 : 4C07;  -- 	OUT    XLEDS       ; clear LEDs once ready to continue
+           205 : 4CC3;  -- 	OUT    RESETPOS    ; reset odometry in case wheels moved after programming	
+           206 : 07C9;  -- Go:	LOAD	FSlow
+           207 : 4C83;  -- 	OUT		LVELCMD
+           208 : 4C8B;  -- 	OUT		RVELCMD
+           209 : 1606;  -- 	JUMP	Go
+           20A : 48C2;  -- 	IN     THETA       ; get the current angular position
+           20B : 374C;  -- 	ADDI   -180        ; test whether facing 0-179 or 180-359
+           20C : 1E0F;  -- 	JPOS   NegAngle    ; robot facing 180-360; handle that separately
+           20D : 34B4;  -- 	ADDI   180         ; undo previous subtraction
+           20E : 1610;  -- 	JUMP   CheckAngle  ; THETA positive, so carry on
+           20F : 374C;  -- 	ADDI   -180        ; finish conversion to negative angle:
+           210 : 4C06;  -- 	OUT    LCD         ; Good data to display for debugging
+           211 : 0B7B;  -- 	STORE  Temp
+           212 : 3002;  -- 	SHIFT  2          ; divide by two
+           213 : 0F7B;  -- 	ADD    Temp        ; add original value
+           214 : 1E1D;  -- 	JPOS   CapPos      ; handle +/- separately
+           215 : 0E2F;  -- 	ADD    DeadZone    ; if close to 0, don't do anything
+           216 : 1E25;  -- 	JPOS   NoTurn      ; (don't do anything)
+           217 : 122F;  -- 	SUB    DeadZone    ; restore original value
+           218 : 3464;  -- 	ADDI   100         ; check for <-100
+           219 : 1E1B;  -- 	JPOS   NegOK       ; it was not <-100, so carry on
+           21A : 07A8;  -- 	LOAD   Zero        ; it was <-100, so clear excess
+           21B : 379C;  -- 	ADDI   -100        ; undo the previous addition
+           21C : 1627;  -- 	JUMP   SendToMotors
+           21D : 122F;  -- 	SUB    DeadZone    ; if close to 0, don't do anything
+           21E : 1A25;  -- 	JNEG   NoTurn
+           21F : 0E2F;  -- 	ADD    DeadZone    ; restore original value
+           220 : 379C;  -- 	ADDI   -100
+           221 : 1A23;  -- 	JNEG   PosOK       ; it was not >100, so carry on
+           222 : 07A8;  -- 	LOAD   Zero        ; it was >100, so clear excess
+           223 : 3464;  -- 	ADDI   100         ; undo the previous subtraction
+           224 : 1627;  -- 	JUMP   SendToMotors
+           225 : 07A8;  -- 	LOAD   Zero
+           226 : 1627;  -- 	JUMP   SendToMotors
+           227 : 0B7B;  -- 	STORE  Temp        ; store calculated desired velocity
+           228 : 4C83;  -- 	OUT    LVELCMD
+           229 : 4C04;  -- 	OUT    SSEG1       ; for debugging purposes
+           22A : 07A8;  -- 	LOAD   Zero
+           22B : 137B;  -- 	SUB    Temp        ; AC = 0 - AC
+           22C : 4C8B;  -- 	OUT    RVELCMD	
+           22D : 4C05;  -- 	OUT    SSEG2       ; debugging
+           22E : 160A;  -- 	JUMP   Center      ; repeat forever
+           22F : 000A;  -- DeadZone:  DW 10       ; Actual deadzone will be /5 due to scaling above.
+           230 : 07A8;  -- 	LOAD   Zero         ; Stop everything.
+           231 : 4C83;  -- 	OUT    LVELCMD
+           232 : 4C8B;  -- 	OUT    RVELCMD
+           233 : 4CB2;  -- 	OUT    SONAREN
+           234 : 0637;  -- 	LOAD   DEAD         ; An indication that we are dead
+           235 : 4C05;  -- 	OUT    SSEG2
+           236 : 1636;  -- 	JUMP   Forever      ; Do this forever.
+           237 : DEAD;  -- DEAD: DW &HDEAD
+           238 : 07A9;  -- 	LOAD	One
+           239 : 0B7D;  -- 	STORE	TempX
+           23A : 0B7E;  -- 	STORE	TempY
+           23B : 077C;  -- 	LOAD	TempPoint
+           23C : 22CC;  -- 	JZERO	Found
+           23D : 13A9;  -- 	SUB		One
+           23E : 0B7B;  -- 	STORE	Temp
+           23F : 07AA;  -- 	LOAD	Two
+           240 : 0B7D;  -- 	STORE	TempX
+           241 : 07A9;  -- 	Load	One
+           242 : 0B7E;  -- 	STORE	TempY
+           243 : 077B;  -- 	LOAD	Temp
+           244 : 22CC;  -- 	JZERO	Found
+           245 : 13A9;  -- 	SUB		One
+           246 : 0B7B;  -- 	STORE 	TEMP
+           247 : 07AB;  -- 	LOAD	Three
+           248 : 0B7D;  -- 	STORE	TempX
+           249 : 07A9;  -- 	Load	One
+           24A : 0B7E;  -- 	STORE	TempY
+           24B : 077B;  -- 	LOAD	Temp
+           24C : 22CC;  -- 	JZERO	Found
+           24D : 13A9;  -- 	SUB		One
+           24E : 0B7B;  -- 	STORE	Temp
+           24F : 07AC;  -- 	LOAD	Four
+           250 : 0B7D;  -- 	STORE	TempX
+           251 : 07A9;  -- 	Load	One
+           252 : 0B7E;  -- 	STORE	TempY
+           253 : 077B;  -- 	LOAD	Temp
+           254 : 22CC;  -- 	JZERO	Found
+           255 : 13A9;  -- 	SUB		One
+           256 : 0B7B;  -- 	STORE 	TEMP
+           257 : 07A9;  -- 	LOAD	One
+           258 : 0B7D;  -- 	STORE	TempX
+           259 : 07AA;  -- 	Load	Two
+           25A : 0B7E;  -- 	STORE	TempY
+           25B : 077B;  -- 	LOAD	Temp
+           25C : 22CC;  -- 	JZERO	Found
+           25D : 13A9;  -- 	SUB		One
+           25E : 0B7B;  -- 	STORE	Temp
+           25F : 07AA;  -- 	LOAD	Two
+           260 : 0B7D;  -- 	STORE	TempX
+           261 : 07AA;  -- 	Load	Two
+           262 : 0B7E;  -- 	STORE	TempY
+           263 : 077B;  -- 	LOAD	Temp
+           264 : 22CC;  -- 	JZERO	Found
+           265 : 13A9;  -- 	SUB		One
+           266 : 0B7B;  -- 	STORE 	TEMP
+           267 : 07AB;  -- 	LOAD	Three
+           268 : 0B7D;  -- 	STORE	TempX
+           269 : 07AA;  -- 	Load	Two
+           26A : 0B7E;  -- 	STORE	TempY
+           26B : 077B;  -- 	LOAD	Temp
+           26C : 22CC;  -- 	JZERO	Found
+           26D : 13A9;  -- 	SUB		One
+           26E : 0B7B;  -- 	STORE	Temp
+           26F : 07AC;  -- 	LOAD	Four
+           270 : 0B7D;  -- 	STORE	TempX
+           271 : 07AA;  -- 	Load	Two
+           272 : 0B7E;  -- 	STORE	TempY
+           273 : 077B;  -- 	LOAD	Temp
+           274 : 22CC;  -- 	JZERO	Found
+           275 : 13A9;  -- 	SUB		One
+           276 : 0B7B;  -- 	STORE 	TEMP
+           277 : 07A9;  -- 	LOAD	One
+           278 : 0B7D;  -- 	STORE	TempX
+           279 : 07AB;  -- 	Load	Three
+           27A : 0B7E;  -- 	STORE	TempY
+           27B : 077B;  -- 	LOAD	Temp
+           27C : 22CC;  -- 	JZERO	Found
+           27D : 13A9;  -- 	SUB		One
+           27E : 0B7B;  -- 	STORE	Temp
+           27F : 07AA;  -- 	LOAD	Two
+           280 : 0B7D;  -- 	STORE	TempX
+           281 : 07AB;  -- 	Load	Three
+           282 : 0B7E;  -- 	STORE	TempY
+           283 : 077B;  -- 	LOAD	Temp
+           284 : 22CC;  -- 	JZERO	Found
+           285 : 13A9;  -- 	SUB		One
+           286 : 0B7B;  -- 	STORE 	TEMP
+           287 : 07AB;  -- 	LOAD	Three
+           288 : 0B7D;  -- 	STORE	TempX
+           289 : 07AB;  -- 	Load	Three
+           28A : 0B7E;  -- 	STORE	TempY
+           28B : 077B;  -- 	LOAD	Temp
+           28C : 22CC;  -- 	JZERO	Found
+           28D : 13A9;  -- 	SUB		One
+           28E : 0B7B;  -- 	STORE	Temp
+           28F : 07AC;  -- 	LOAD	Four
+           290 : 0B7D;  -- 	STORE	TempX
+           291 : 07AB;  -- 	Load	Three
+           292 : 0B7E;  -- 	STORE	TempY
+           293 : 077B;  -- 	LOAD	Temp
+           294 : 22CC;  -- 	JZERO	Found
+           295 : 13A9;  -- 	SUB		One
+           296 : 0B7B;  -- 	STORE 	TEMP
+           297 : 07AD;  -- 	LOAD	Five
+           298 : 0B7D;  -- 	STORE	TempX
+           299 : 07AB;  -- 	Load	Three
+           29A : 0B7E;  -- 	STORE	TempY
+           29B : 077B;  -- 	LOAD	Temp
+           29C : 22CC;  -- 	JZERO	Found
+           29D : 13A9;  -- 	SUB		One
+           29E : 0B7B;  -- 	STORE	Temp
+           29F : 07A9;  -- 	LOAD	One
+           2A0 : 0B7D;  -- 	STORE	TempX
+           2A1 : 07AC;  -- 	Load	Four
+           2A2 : 0B7E;  -- 	STORE	TempY
+           2A3 : 077B;  -- 	LOAD	Temp
+           2A4 : 22CC;  -- 	JZERO	Found
+           2A5 : 13A9;  -- 	SUB		One
+           2A6 : 0B7B;  -- 	STORE 	TEMP
+           2A7 : 07AA;  -- 	LOAD	Two
+           2A8 : 0B7D;  -- 	STORE	TempX
+           2A9 : 07AC;  -- 	Load	Four
+           2AA : 0B7E;  -- 	STORE	TempY
+           2AB : 077B;  -- 	LOAD	Temp
+           2AC : 22CC;  -- 	JZERO	Found
+           2AD : 13A9;  -- 	SUB		One
+           2AE : 0B7B;  -- 	STORE	Temp
+           2AF : 07AB;  -- 	LOAD	Three
+           2B0 : 0B7D;  -- 	STORE	TempX
+           2B1 : 07AC;  -- 	Load	Four
+           2B2 : 0B7E;  -- 	STORE	TempY
+           2B3 : 077B;  -- 	LOAD	Temp
+           2B4 : 22CC;  -- 	JZERO	Found
+           2B5 : 13A9;  -- 	SUB		One
+           2B6 : 0B7B;  -- 	STORE 	TEMP
+           2B7 : 07AC;  -- 	LOAD	Four
+           2B8 : 0B7D;  -- 	STORE	TempX
+           2B9 : 07AC;  -- 	Load	Four
+           2BA : 0B7E;  -- 	STORE	TempY
+           2BB : 077B;  -- 	LOAD	Temp
+           2BC : 22CC;  -- 	JZERO	Found
+           2BD : 13A9;  -- 	SUB		One
+           2BE : 0B7B;  -- 	STORE	Temp
+           2BF : 07AD;  -- 	LOAD	Five
+           2C0 : 0B7D;  -- 	STORE	TempX
+           2C1 : 07AC;  -- 	Load	Four
+           2C2 : 0B7E;  -- 	STORE	TempY
+           2C3 : 077B;  -- 	LOAD	Temp
+           2C4 : 22CC;  -- 	JZERO	Found
+           2C5 : 13A9;  -- 	SUB		One
+           2C6 : 0B7B;  -- 	STORE 	TEMP
+           2C7 : 07AE;  -- 	LOAD	Six
+           2C8 : 0B7D;  -- 	STORE	TempX
+           2C9 : 07AC;  -- 	Load	Four
+           2CA : 0B7E;  -- 	STORE	TempY
+           2CB : 077B;  -- 	LOAD	Temp
+           2CC : 4400;  -- 	RETURN
+           2CD : 07A8;  -- 	LOAD	Zero
+           2CE : 0B8E;  -- 	STORE	Dist
+           2CF : 0791;  -- 	LOAD	X1			;check if x < 3
+           2D0 : 13AB;  -- 	SUB		Three
+           2D1 : 1AFD;  -- 	JNEG	MoveVert 	
+           2D2 : 0796;  -- 	LOAD	DeltaY		;check if DeltaY > 1
+           2D3 : 13A9;  -- 	SUB		One
+           2D4 : 1EE9;  -- 	JPOS	AvoidWall1	
+           2D5 : 0796;  -- 	LOAD	DeltaY		;check if DeltaY < -1
+           2D6 : 13A7;  -- 	SUB		NegOne
+           2D7 : 1AE9;  -- 	JNEG	AvoidWall1
+           2D8 : 0796;  -- 	LOAD	DeltaY		;check if DeltaY = 1
+           2D9 : 13A9;  -- 	SUB		One
+           2DA : 1EFD;  -- 	JPOS	MoveVert
+           2DB : 1AFD;  -- 	JNEG	MoveVert
+           2DC : 0792;  -- 	LOAD	Y1
+           2DD : 13AA;  -- 	SUB		Two
+           2DE : 22E9;  -- 	JZERO	AvoidWall1
+           2DF : 0796;  -- 	LOAD	DeltaY		;check if DeltaY = -1
+           2E0 : 13A7;  -- 	SUB		NegOne
+           2E1 : 1EFD;  -- 	JPOS	MoveVert
+           2E2 : 1AFD;  -- 	JNeg	MoveVert
+           2E3 : 0792;  -- 	LOAD	Y1
+           2E4 : 13AB;  -- 	SUB		Three
+           2E5 : 22E9;  -- 	JZERO	AvoidWall1
+           2E6 : 0791;  -- 	Load	X1			;check if need to avoid topright wall
+           2E7 : 13AE;  -- 	SUB		Six
+           2E8 : 22F4;  -- 	JZERO	AvoidWall2
+           2E9 : 0791;  -- 	LOAD	X1
+           2EA : 13AA;  -- 	SUB		Two
+           2EB : 0B7B;  -- 	STORE	Temp
+           2EC : 078E;  -- 	LOAD	Dist
+           2ED : 0F7B;  -- 	ADD		Temp
+           2EE : 0B8E;  -- 	STORE	Dist
+           2EF : 07AA;  -- 	LOAD	Two
+           2F0 : 0B8F;  -- 	STORE	XC
+           2F1 : 16FD;  -- 	JUMP	MoveVert
+           2F2 : 07AF;  -- 	LOAD	Seven
+           2F3 : 4C05;  -- 	OUT		SSEG2
+           2F4 : 0791;  -- 	LOAD	X1
+           2F5 : 13AD;  -- 	SUB		Five
+           2F6 : 0B7B;  -- 	STORE	Temp
+           2F7 : 078E;  -- 	LOAD	Dist
+           2F8 : 0F7B;  -- 	ADD		Temp
+           2F9 : 0B8E;  -- 	STORE	Dist
+           2FA : 07AD;  -- 	LOAD	Five
+           2FB : 0B8F;  -- 	STORE	XC
+           2FC : 16FD;  -- 	JUMP	MoveVert
+           2FD : 0796;  -- 	LOAD	DeltaY
+           2FE : 1B05;  -- 	JNEG	MoveVertNeg
+           2FF : 078E;  -- 	LOAD	Dist
+           300 : 0F96;  -- 	ADD		DeltaY
+           301 : 0B8E;  -- 	STORE	Dist
+           302 : 0794;  -- 	LOAD	Y2
+           303 : 0B90;  -- 	STORE	YC
+           304 : 170B;  -- 	JUMP	MoveHor
+           305 : 078E;  -- 	LOAD	Dist
+           306 : 1396;  -- 	SUB		DeltaY
+           307 : 0B8E;  -- 	STORE	Dist		;shouldn't you add, not store?
+           308 : 0794;  -- 	LOAD	Y2
+           309 : 0B90;  -- 	STORE	YC
+           30A : 170B;  -- 	JUMP	MoveHor
+           30B : 0793;  -- 	LOAD	X2
+           30C : 138F;  -- 	SUB		XC
+           30D : 0B95;  -- 	STORE	DeltaX
+           30E : 0795;  -- 	LOAD	DeltaX
+           30F : 1B16;  -- 	JNEG	MoveHorNeg
+           310 : 078E;  -- 	LOAD	Dist
+           311 : 0F95;  -- 	ADD		DeltaX
+           312 : 0B8E;  -- 	STORE	Dist
+           313 : 0793;  -- 	LOAD	X2
+           314 : 0B8F;  -- 	STORE	XC
+           315 : 171C;  -- 	JUMP	FoundDist
+           316 : 078E;  -- 	LOAD	Dist
+           317 : 1395;  -- 	SUB		DeltaX
+           318 : 0B8E;  -- 	STORE	Dist
+           319 : 0793;  -- 	LOAD	X2
+           31A : 0B8F;  -- 	STORE	XC
+           31B : 171C;  -- 	JUMP	FoundDist
+           31C : 4400;  -- 	RETURN
+           31D : 4C02;  -- 	OUT    TIMER
+           31E : 4802;  -- 	IN     TIMER
+           31F : 4C07;  -- 	OUT    XLEDS       ; User-feedback that a pause is occurring.
+           320 : 37F6;  -- 	ADDI   -10         ; 1 second in 10Hz.
+           321 : 1B1E;  -- 	JNEG   Wloop
+           322 : 4400;  -- 	RETURN
+           323 : 0B2A;  -- 	STORE  WaitTime
+           324 : 4C02;  -- 	OUT    Timer
+           325 : 4802;  -- 	IN     Timer
+           326 : 4C07;  -- 	OUT    XLEDS       ; User-feedback that a pause is occurring.
+           327 : 132A;  -- 	SUB    WaitTime
+           328 : 1B25;  -- 	JNEG   WACLoop
+           329 : 4400;  -- 	RETURN
+           32A : 0000;  -- 	WaitTime: DW 0     ; "local" variable.
+           32B : 4343;  -- 	CALL   GetBattLvl
+           32C : 232B;  -- 	JZERO  BattCheck   ; A/D hasn't had time to initialize
+           32D : 13CF;  -- 	SUB    MinBatt
+           32E : 1B31;  -- 	JNEG   DeadBatt
+           32F : 0FCF;  -- 	ADD    MinBatt     ; get original value back
+           330 : 4400;  -- 	RETURN
+           331 : 07AC;  -- 	LOAD   Four
+           332 : 4C0A;  -- 	OUT    BEEP        ; start beep sound
+           333 : 4343;  -- 	CALL   GetBattLvl  ; get the battery level
+           334 : 4C04;  -- 	OUT    SSEG1       ; display it everywhere
+           335 : 4C05;  -- 	OUT    SSEG2
+           336 : 4C06;  -- 	OUT    LCD
+           337 : 07A8;  -- 	LOAD   Zero
+           338 : 37FF;  -- 	ADDI   -1          ; 0xFFFF
+           339 : 4C01;  -- 	OUT    LEDS        ; all LEDs on
+           33A : 4C07;  -- 	OUT    XLEDS
+           33B : 431D;  -- 	CALL   Wait1       ; 1 second
+           33C : 07A8;  -- 	Load   Zero
+           33D : 4C0A;  -- 	OUT    BEEP        ; stop beeping
+           33E : 07A8;  -- 	LOAD   Zero
+           33F : 4C01;  -- 	OUT    LEDS        ; LEDs off
+           340 : 4C07;  -- 	OUT    XLEDS
+           341 : 431D;  -- 	CALL   Wait1       ; 1 second
+           342 : 1731;  -- 	JUMP   DeadBatt    ; repeat forever
+           343 : 07D1;  -- 	LOAD   I2CRCmd     ; 0x0190 (write 0B, read 1B, addr 0x90)
+           344 : 4C90;  -- 	OUT    I2C_CMD     ; to I2C_CMD
+           345 : 4C92;  -- 	OUT    I2C_RDY     ; start the communication
+           346 : 4351;  -- 	CALL   BlockI2C    ; wait for it to finish
+           347 : 4891;  -- 	IN     I2C_DATA    ; get the returned data
+           348 : 4400;  -- 	RETURN
+           349 : 4351;  -- 	CALL   BlockI2C    ; wait for idle
+           34A : 07D0;  -- 	LOAD   I2CWCmd     ; 0x1190 (write 1B, read 1B, addr 0x90)
+           34B : 4C90;  -- 	OUT    I2C_CMD     ; to I2C_CMD register
+           34C : 07A8;  -- 	LOAD   Zero        ; 0x0000 (A/D port 0, no increment)
+           34D : 4C91;  -- 	OUT    I2C_DATA    ; to I2C_DATA register
+           34E : 4C92;  -- 	OUT    I2C_RDY     ; start the communication
+           34F : 4351;  -- 	CALL   BlockI2C    ; wait for it to finish
+           350 : 4400;  -- 	RETURN
+           351 : 07A8;  -- 	LOAD   Zero
+           352 : 0B7B;  -- 	STORE  Temp        ; Used to check for timeout
+           353 : 077B;  -- 	LOAD   Temp
+           354 : 3401;  -- 	ADDI   1           ; this will result in ~0.1s timeout
+           355 : 0B7B;  -- 	STORE  Temp
+           356 : 235A;  -- 	JZERO  I2CError    ; Timeout occurred; error
+           357 : 4892;  -- 	IN     I2C_RDY     ; Read busy signal
+           358 : 1F53;  -- 	JPOS   BI2CL       ; If not 0, try again
+           359 : 4400;  -- 	RETURN             ; Else return
+           35A : 07A8;  -- 	LOAD   Zero
+           35B : 352C;  -- 	ADDI   &H12C       ; "I2C"
+           35C : 4C04;  -- 	OUT    SSEG1
+           35D : 4C05;  -- 	OUT    SSEG2       ; display error message
+           35E : 175A;  -- 	JUMP   I2CError
+           35F : 0B74;  -- 	STORE  UARTTemp
+           360 : 3018;  -- 	SHIFT  -8
+           361 : 37E5;  -- 	ADDI   -27   ; escape character
+           362 : 2366;  -- 	JZERO  UEsc1
+           363 : 341B;  -- 	ADDI   27
+           364 : 4C98;  -- 	OUT    UART_DAT
+           365 : 1769;  -- 	JUMP   USend2
+           366 : 341B;  -- 	ADDI   27
+           367 : 4C98;  -- 	OUT    UART_DAT
+           368 : 4C98;  -- 	OUT    UART_DAT
+           369 : 0774;  -- 	LOAD   UARTTemp
+           36A : 27C0;  -- 	AND    LowByte
+           36B : 37E5;  -- 	ADDI   -27   ; escape character
+           36C : 2370;  -- 	JZERO  UEsc2
+           36D : 341B;  -- 	ADDI   27
+           36E : 4C98;  -- 	OUT    UART_DAT
+           36F : 4400;  -- 	RETURN
+           370 : 341B;  -- 	ADDI   27
+           371 : 4C98;  -- 	OUT    UART_DAT
+           372 : 4C98;  -- 	OUT    UART_DAT
+           373 : 4400;  -- 	RETURN
+           374 : 0000;  -- 	UARTTemp: DW 0
+           375 : 077A;  -- 	LOAD   NL
+           376 : 4C98;  -- 	OUT    UART_DAT
+           377 : 3018;  -- 	SHIFT  -8
+           378 : 4C98;  -- 	OUT    UART_DAT
+           379 : 4400;  -- 	RETURN
+           37A : 0A1B;  -- 	NL: DW &H0A1B
+           37B : 0000;  -- Temp:     DW 0 ; "Temp" is not a great name, but can be useful
+           37C : 0000;  -- TempPoint:	DW 0
+           37D : 0000;  -- TempX:		DW 0
+           37E : 0000;  -- TempY:		DW 0
+           37F : 0000;  -- PointS:	  DW &B0
+           380 : 0000;  -- PointSX:  DW 0
+           381 : 0000;  -- PointSY:  DW 0
+           382 : 0000;  -- PointC:	  DW &B0
+           383 : 0000;  -- PointCX:  DW 0
+           384 : 0000;  -- PointCY:  DW 0
+           385 : 0000;  -- Point1:	  DW &B0
+           386 : 0000;  -- Point1X:  DW 0
+           387 : 0000;  -- Point1Y:  DW 0
+           388 : 0000;  -- Point2:	  DW &B0
+           389 : 0000;  -- Point2X:  DW 0
+           38A : 0000;  -- Point2Y:  DW 0
+           38B : 0000;  -- Point3:	  DW &B0
+           38C : 0000;  -- Point3X:  DW 0
+           38D : 0000;  -- Point3Y:  DW 0
+           38E : 0000;  -- Dist:		DW 0
+           38F : 0000;  -- XC:			DW 0
+           390 : 0000;  -- YC:			DW 0
+           391 : 0000;  -- X1:			DW 0
+           392 : 0000;  -- Y1:			DW 0
+           393 : 0000;  -- X2:			DW 0
+           394 : 0000;  -- Y2:			DW 0
+           395 : 0000;  -- DeltaX:		DW 0
+           396 : 0000;  -- DeltaY:		DW 0
+           397 : 0000;  -- SPP1:		DW 0
+           398 : 0000;  -- SPP2:		DW 0
+           399 : 0000;  -- SPP3:		DW 0
+           39A : 0000;  -- P1P2:		DW 0
+           39B : 0000;  -- P1P3:		DW 0
+           39C : 0000;  -- P2P3:		DW 0
+           39D : 0000;  -- SPP1P2P3:	DW 0
+           39E : 0000;  -- SPP1P3P2:	DW 0
+           39F : 0000;  -- SPP2P1P3:	DW 0
+           3A0 : 0000;  -- SPP2P3P1:	DW 0
+           3A1 : 0000;  -- SPP3P1P2:	DW 0
+           3A2 : 0000;  -- SPP3P2P1:	DW 0
+           3A3 : 0000;  -- ShortPath:	DW 0
+           3A4 : 0000;  -- P1:			DW 0
+           3A5 : 0000;  -- P2:			DW 0
+           3A6 : 0000;  -- P3:			DW 0
+           3A7 : FFFF;  -- NegOne:   DW -1
+           3A8 : 0000;  -- Zero:     DW 0
+           3A9 : 0001;  -- One:      DW 1
+           3AA : 0002;  -- Two:      DW 2
+           3AB : 0003;  -- Three:    DW 3
+           3AC : 0004;  -- Four:     DW 4
+           3AD : 0005;  -- Five:     DW 5
+           3AE : 0006;  -- Six:      DW 6
+           3AF : 0007;  -- Seven:    DW 7
+           3B0 : 0008;  -- Eight:    DW 8
+           3B1 : 0009;  -- Nine:     DW 9
+           3B2 : 000A;  -- Ten:      DW 10
+           3B3 : 0000;  -- MaskTemp: DW &B0
+           3B4 : 001F;  -- MaskC1:   DW &B11111
+           3B5 : 03E0;  -- MaskC2:   DW &B1111100000
+           3B6 : 03FF;  -- MaskC12:  DW &B1111111111
+           3B7 : 7C00;  -- MaskC3:   DW &B111110000000000
+           3B8 : 0001;  -- Mask0:    DW &B00000001
+           3B9 : 0002;  -- Mask1:    DW &B00000010
+           3BA : 0004;  -- Mask2:    DW &B00000100
+           3BB : 0008;  -- Mask3:    DW &B00001000
+           3BC : 0010;  -- Mask4:    DW &B00010000
+           3BD : 0020;  -- Mask5:    DW &B00100000
+           3BE : 0040;  -- Mask6:    DW &B01000000
+           3BF : 0080;  -- Mask7:    DW &B10000000
+           3C0 : 00FF;  -- LowByte:  DW &HFF      ; binary 00000000 1111111
+           3C1 : 000F;  -- LowNibl:  DW &HF       ; 0000 0000 0000 1111
+           3C2 : 03C1;  -- OneMeter: DW 961       ; ~1m in 1.05mm units
+           3C3 : 01E1;  -- HalfMeter: DW 481      ; ~0.5m in 1.05mm units
+           3C4 : 024A;  -- TwoFeet:  DW 586       ; ~2ft in 1.05mm units
+           3C5 : 005A;  -- Deg90:    DW 90        ; 90 degrees in odometry units
+           3C6 : 00B4;  -- Deg180:   DW 180       ; 180
+           3C7 : 010E;  -- Deg270:   DW 270       ; 270
+           3C8 : 0168;  -- Deg360:   DW 360       ; can never actually happen; for math only
+           3C9 : 0064;  -- FSlow:    DW 100       ; 100 is about the lowest velocity value that will move
+           3CA : FF9C;  -- RSlow:    DW -100
+           3CB : 015E;  -- FMid:     DW 350       ; 350 is a medium speed
+           3CC : FEA2;  -- RMid:     DW -350
+           3CD : 01F4;  -- FFast:    DW 500       ; 500 is almost max speed (511 is max)
+           3CE : FE0C;  -- RFast:    DW -500
+           3CF : 0082;  -- MinBatt:  DW 130       ; 13.0V - minimum safe battery voltage
+           3D0 : 1190;  -- I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
+           3D1 : 0190;  -- I2CRCmd:  DW &H0190    ; write nothing, read one byte, addr 0x90
+  END;
