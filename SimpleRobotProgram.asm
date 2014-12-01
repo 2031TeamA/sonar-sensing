@@ -65,6 +65,11 @@ Main:                   ; Program starts here.
     LOAD    CurrPosTry
     OUT     SSEG2
     OUT     RESETPOS
+	LOADI	2
+	STORE	MoveDist
+	CALL	MoveDistInFeet
+	CALL	MoveForward
+	  OUT     RESETPOS 
 DieHard:
     CALL    ReadSides   ; Just for some simple testing of readings
     CALL    IsValidReading
@@ -79,16 +84,17 @@ DEAD: DW    &HDEAD
 ;***************************************************************
 ;* Subroutines
 ;***************************************************************
-XDIST:  DW  500
+
 MoveForward:
     OUT     RESETPOS
     LOADI   250
     ;STORE   LimitHigh
+	CALL	MoveDistInFeet
 MoveFwdLoop:
     LOADI	300
     CALL    MoveMotorsAC
     IN		XPOS
-    SUB		XDIST ;what to subtract if we want to move Y?
+    SUB		MoveDist
     CALL    LimitRoutine
     JNEG	MoveForward
     OUT 	RESETPOS
@@ -237,7 +243,8 @@ Localize:
 CompareRet:
     RETURN
 
-FirstFourBits:  DW  &HF000      ; The first 4 bits (used for rotations0
+FirstFourBits:  DW  &HF000      ; The first 4 bits (used for rotations)
+FirstFourBits:  DW  &H000F      ; The last 4 bits (used for rotations)
 TempHead:       DW  0           ; The temp variable for the robot footprint
 TempRot:        DW  -1          ; The temp variable for the robot rotation
 ComparePosits:
@@ -815,6 +822,310 @@ UARTNL:
     RETURN
 NL: DW      &H0A1B
 
+;---------------------navigation stuff
+
+
+; points have already been entered and placed into dest1X,
+; dest1Y, etc. MoveForward & TurnLeft90 implemented
+
+navigate:
+		;for current coord
+		LOAD	CurrPosY
+		STORE	yRegion
+		LOAD 	CurrPosX
+		STORE 	TempX
+		CALL	RegionSet
+		LOAD	tempRegion
+		STORE	currRegion
+		LOAD	Resetting
+		JPOS	check1	;if we are resetting then don't go on
+		;for 1st dest coord
+		LOAD	Dest1Y
+		STORE	yRegion
+		LOAD	Dest1X
+		STORE 	TempX
+		CALL	RegionSet
+		LOAD	tempRegion
+		STORE	dest1Region
+		;for 2nd dest coord
+		LOAD	Dest2Y
+		STORE	yRegion
+		LOAD	Dest2X
+		STORE 	TempX
+		CALL	RegionSet
+		LOAD	tempRegion
+		STORE	dest2Region
+		;for 3rd dest coord
+		LOAD	Dest3Y
+		STORE	yRegion
+		LOAD	Dest3X
+		STORE 	TempX
+		CALL	RegionSet
+		LOAD	tempRegion
+		STORE	dest3Region
+
+		;find which coord to visit first
+check1:	LOAD	Loc1Found
+		JPOS	check2		;skip if dest1 has been found
+		LOAD	dest1Region
+		STORE	tempRegion
+		CALL	checkSameRegion ;this will be the shortest path if
+								;they're in the same region
+		LOAD 	DESTX
+		JNEG    check2			;they weren't in the same region
+								;check the next coord
+		;otherwise they are in the same region
+		;and DESTX and DESTY have been set
+		CALL	Calc
+		LOADI	1
+		STORE	Loc1Found
+		;now the currPosX and currPosY have changed to dest1X and dest1Y
+		LOAD	Dest1Y
+		STORE	CurrPosY
+		LOAD	Dest1X
+		STORE	CurrPosX
+		JUMP	Reset
+notSameRegion:
+		
+		
+		
+check2:	LOAD	Loc2Found
+		JPOS	check3
+		LOAD    dest2Region
+		STORE	tempRegion
+		CALL 	checkSameRegion
+		LOAD 	DESTX
+		JNEG    check3		;weren't in same region
+		;otherwise are in the same region
+		CALL	Calc
+		LOADI	1
+		STORE	Loc2Found
+		;now the currPosX and currPosY have changed
+		LOAD	Dest2Y
+		STORE	CurrPosY
+		LOAD	Dest2X
+		STORE	CurrPosX
+		JUMP	Reset
+
+check3: LOAD	Loc3Found
+		JPOS	done
+		LOAD    dest3Region
+		STORE	tempRegion
+		CALL 	checkSameRegion
+		LOAD 	DESTX
+		JNEG    notSameRegion		;weren't in same region
+		;otherwise are in the same region
+		CALL	Calc
+		LOADI	1
+		STORE	Loc3Found
+		;now the currPosX and currPosY have changed
+		LOAD	Dest3Y
+		STORE	CurrPosY
+		LOAD	Dest3X
+		STORE	CurrPosX
+		JUMP	Reset
+
+
+	
+checkDest: ;basically start over from orient, then check if the
+			;location we're at is correct
+
+outputDest: ;display where we are and beep. (or w/e the reqs are)
+
+
+Reset:
+		LOADI	1
+		STORE	Resetting
+		JUMP	Navigate
+		
+		
+		
+Done:	JUMP	DieHard
+
+RegionSet:
+		LOAD	TempX	;load the X coord
+		ADDI	-2
+		JPOS	notR2
+		;is in region2
+		LOADI   2
+		STORE	tempRegion
+		RETURN
+notR2:  LOAD	yRegion
+		ADDI    -2
+		JPOS	Reg3
+		;is in region 1
+		LOADI   1
+		STORE	tempRegion
+		RETURN
+Reg3:	LOADI	3
+		STORE	tempRegion
+		RETURN
+		
+
+checkSameRegion:
+		LOAD	currRegion
+		SUB		tempRegion
+		JPOS	skip
+		JNEG	skip
+		;they are both in the same region
+		LOAD	Dest1X
+		STORE	DESTX
+		LOAD	Dest1Y
+		STORE	DESTY
+		RETURN
+skip:	LOADI   -1 		;they were not in the same region,
+		STORE   DESTX   ;keep the destinations unset
+		LOADI   -1
+		STORE   DESTY
+		RETURN
+
+		
+R1orR3toR2: ;move from region 1 or 3 to region 2, go X first then Y
+		LOAD	CurrPosX
+		STORE	CURRX
+		LOAD	CurrPosY
+		STORE	CURRX
+		CALL	Calc
+		RETURN
+R2toR1orR3: ;move Y direction frst then X
+		CALL	calcY
+		;has moved Y dist
+		CALL	calcX
+		;has moved X dist
+		CALL	checkDest
+		CALL	outputDest
+		RETURN
+
+;-------------------
+
+Calc:	CALL 	CalcX
+		;has moved to appropriate X coord
+		CALL 	CalcY
+		;has moved to appropriate Y coord
+		CALL	checkDest       ;make sure its right
+		CALL	outputDest		;beep and such
+		RETURN
+calcX:
+		LOAD 	CURRX
+		SUB		DESTX
+		STORE	XDIST
+		JNEG	FlipX
+		JPOS	GoWest
+		;jzero = stay in this column
+		RETURN
+FlipX:	LOAD 	XDIST
+		XOR 	NegOne
+		ADDI    1
+		STORE	XDIST
+		;distance is now positive
+		JUMP 	GoEast
+
+
+calcY:
+		LOAD 	CURRY
+		SUB 	DESTY
+		STORE   YDIST
+		JNEG 	FlipY
+		JPOS 	GoSouth
+		;jzero = stay in this row
+		RETURN
+FlipY:	LOAD	YDIST
+		XOR 	NegOne
+		ADDI    1
+		STORE	YDIST
+		;distance is now positive
+		JUMP	GoNorth
+
+
+GoEast:
+		LOAD    XDIST
+		STORE   MoveDist    ;want to move X coord
+		LOAD 	CURRDIR
+		JZERO 	turnRight	;at north
+		ADDI	-1
+		JZERO 	turnLeft	;at south
+		ADDI	-1
+		JZERO   East		;at east
+		JUMP	turn180     ;at west
+East:	LOADI	2
+		STORE	CURRDIR
+		CALL	MoveForward
+		RETURN
+
+GoNorth:
+		LOAD    YDIST
+		STORE   MoveDist    ;want to move Y coord
+		LOAD 	CURRDIR
+		JZERO 	North		;at north
+		ADDI	-1
+		JZERO 	turn180		;at south
+		ADDI	-1
+		JZERO   turnLeft	;at east
+		JUMP	turnRight   ;at west
+North:	LOADI	0
+		STORE 	CURRDIR
+		CALL	MoveForward
+		RETURN
+
+GoSouth:		
+		LOAD    YDIST
+		STORE   MoveDist    ;want to move Y coord
+		LOAD 	CURRDIR
+		JZERO 	turn180		;at north
+		ADDI	-1
+		JZERO 	South		;at south
+		ADDI	-1
+		JZERO   turnLeft	;at east
+		JUMP	turnRight   ;at west
+South:	LOADI	1
+		STORE   CURRDIR
+		CALL	MoveForward
+		RETURN
+
+GoWest:
+		LOAD    XDIST
+		STORE   MoveDist    ;want to move X coord
+		LOAD 	CURRDIR
+		JZERO 	turnLeft	;at north
+		ADDI	-1
+		JZERO 	turnRight	;at south
+		ADDI	-1
+		JZERO   turn180		;at east
+		LOADI	3			;at west
+		STORE	CURRDIR
+		CALL 	MoveForward
+		RETURN
+
+
+turn180:
+		CALL 	TurnLeft90
+		CALL 	TurnLeft90
+		CALL 	MoveForward
+		RETURN
+turnRight:
+		CALL 	TurnRight90
+		CALL 	MoveForward
+		RETURN
+turnLeft:
+		CALL 	TurnLeft90
+		CALL 	MoveForward
+		RETURN
+		
+	
+MoveDistInFeet:
+		LOADI	0
+		STORE	Temp
+MDIF:	LOAD	Temp
+		ADD		TwoFeet
+		LOAD	MoveDist
+		ADDI	-1
+		JPOS	MDIF
+		LOAD	Temp
+		STORE	MoveDist
+		RETURN
+
+
+
 ;***************************************************************
 ;* Variables
 ;***************************************************************
@@ -824,6 +1135,30 @@ Temp2:      DW  0   ; Temporary Variable 2
 WaitTime:   DW  0   ; Input to Wait
 OneFtDist:  DW  304 ; roughly 304.8 mm per ft (but ticks are ~1.05 mm, so about 290.3 ticks)
 NegOne:     DW  &HFFFF ; All 1s
+
+
+yRegion:			DW    0
+tempRegion:			DW    0
+currRegion:			DW    0
+dest1Region:		DW    0
+dest2Region:		DW    0
+dest3Region:		DW    0
+DESTX:				DW    -1
+DESTY:				DW    -1
+XDIST:				DW 	  0
+YDIST:				DW    0
+MoveDist:			DW 	  0
+Resetting:			DW	  -1
+CURRDIR:			DW    -1
+CURRX:				DW	  0
+CURRY:				DW    0
+;NORTH:				DW    0
+;SOUTH:				DW    1
+;EAST:				DW    2
+;WEST:				DW    3
+Loc1Found:			DW	  -1
+Loc2Found:			DW    -1
+Loc3Found:			DW	  -1
 
 ;***************************************************************
 ;* Constants
