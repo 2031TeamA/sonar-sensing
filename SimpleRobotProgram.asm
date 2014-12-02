@@ -139,11 +139,8 @@ TurnRight90:
 TurnStart:
     STORE   TurnAmount
     OUT     RESETPOS
-    IN      THETA
-    OUT     LCD
 TurnACLoop:
     IN      THETA
-    OUT     SSEG1
     CALL    LimitDeg180
     ADD     TurnAmount
     SHIFT   2
@@ -151,10 +148,7 @@ TurnACLoop:
     CALL    TurnMotorsAC
 	IN      THETA
     CALL    LimitDeg180
-    
 	ADD     TurnAmount
-        OUT     SSEG2
-
 	JNEG    TurnACLoop
     CALL    BrakeMotors
 	OUT     RESETPOS
