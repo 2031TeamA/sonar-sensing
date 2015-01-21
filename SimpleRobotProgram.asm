@@ -58,7 +58,7 @@ Main:                   ; Program starts here.
     CALL    ReadInput
     CALL    TryTurning
     CALL    Localize
-    JUMP    navigate
+    ;JUMP    navigate
     ;LOAD    CurrPosX
     ;SHIFT   8
     ;ADD     CurrPosY
@@ -242,7 +242,7 @@ Localize:
     ADD     CurrFootprint
     STORE   CurrFootprint   ; Generate the current robot footprint
 
-    OUT     SSEG1
+    ;OUT     SSEG1
     CALL    ComparePosits       ; Find out where the robot currently is, which stores CurrPosX, CurrPosY, CurrRotat
     ;LOAD    CurrPosX
     LOAD    CurrPosTry
@@ -250,6 +250,7 @@ Localize:
     CALL    TryTurning
     JUMP    Localize
 CompareRet:
+    CALL    BeepFor3Secs
     RETURN
 
 TempHead:       DW  0           ; The temp variable for the robot footprint
@@ -401,7 +402,7 @@ NextContinue:
     SHIFT   4               ; Shift them to the left (4 LSBs are now 0)
     ADD     Temp            ; Add the 4 original MSBs
     STORE   TempHead        ; Store it
-    OUT     LCD
+    ;OUT     LCD
     JUMP    CompareLoop     ; Keep on chuggin'
 DoneComparePosits:
     LOAD    TempRot         ; Found a match! Update the rotation
@@ -415,7 +416,6 @@ DoneComparePosits:
     STORE   CurrPosX
     LOAD    CurrPosTry
     OUT     SSEG1
-    CALL    BeepFor3Secs
     RETURN
 
 Destin1:      DW  0           ; Destination 1 ID (from switches)
